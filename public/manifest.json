@@ -1,0 +1,21 @@
+{
+  "name": "T-Belt Entry",
+  "short_name": "T-Belt",
+  "description": "Quick T-Belt station entry and text message tool",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f3f4f6",
+  "theme_color": "#111111",
+  "icons": [
+    {
+      "src": "/logo192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
