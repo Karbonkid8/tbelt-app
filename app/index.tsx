@@ -23,6 +23,14 @@ type StationKey =
   | 'b2s2'
   | 'b2s1';
 
+const COLORS = {
+  red: '#EE2827',
+  charcoal: '#262626',
+  darkRed: '#A91E22',
+  light: '#E7E7E7',
+  gray: '#7C7B7A',
+};
+
 const emptyValues: Record<StationKey, string> = {
   b1s5: '',
   b1s4: '',
@@ -61,10 +69,15 @@ export default function HomeScreen() {
 
   const [phoneNumber, setPhoneNumber] = useState('');
 
-  const [recipientOpen, setRecipientOpen] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
+  const [recipientOpen, setRecipientOpen] =
+    useState(false);
 
-  const inputRefs = useRef<Record<StationKey, TextInput | null>>({
+  const [previewOpen, setPreviewOpen] =
+    useState(false);
+
+  const inputRefs = useRef<
+    Record<StationKey, TextInput | null>
+  >({
     b1s5: null,
     b1s4: null,
     b1s3: null,
@@ -77,7 +90,10 @@ export default function HomeScreen() {
     b2s1: null,
   });
 
-  function updateValue(key: StationKey, value: string) {
+  function updateValue(
+    key: StationKey,
+    value: string
+  ) {
     setValues((current) => ({
       ...current,
       [key]: value,
@@ -114,7 +130,9 @@ export default function HomeScreen() {
           ? ' Partial/Start'
           : '';
 
-      return `Stn${station}:${value ? ` ${value}` : ''}${marker}`;
+      return `Stn${station}:${
+        value ? ` ${value}` : ''
+      }${marker}`;
     };
 
     return [
@@ -145,7 +163,6 @@ export default function HomeScreen() {
   }
 
   function clearEntry() {
-    // Browser / PWA
     if (
       Platform.OS === 'web' &&
       typeof window !== 'undefined'
@@ -161,7 +178,6 @@ export default function HomeScreen() {
       return;
     }
 
-    // Android / iPhone
     Alert.alert(
       'Clear Entry?',
       'This will clear all station values and the Partial/Start selection. The recipient will stay saved.',
@@ -208,7 +224,6 @@ export default function HomeScreen() {
       `sms:${phone}?body=${encodedMessage}`;
 
     try {
-      // Browser / PWA
       if (
         Platform.OS === 'web' &&
         typeof window !== 'undefined'
@@ -217,7 +232,6 @@ export default function HomeScreen() {
         return;
       }
 
-      // Android / iPhone
       const supported =
         await Linking.canOpenURL(smsUrl);
 
@@ -254,16 +268,28 @@ export default function HomeScreen() {
     );
 
     return (
-      <View style={styles.beltSection}>
-        <Text style={styles.beltTitle}>
-          T-Belt {beltNumber}
-        </Text>
+      <View style={styles.beltCard}>
+        <View style={styles.beltHeader}>
+          <View style={styles.miniLogo}>
+            <Text style={styles.miniLogoText}>T</Text>
+          </View>
+
+          <View>
+            <Text style={styles.beltTitle}>
+              T-BELT {beltNumber}
+            </Text>
+
+            <View style={styles.beltUnderline} />
+          </View>
+        </View>
+
+        <View style={styles.divider} />
 
         {rows.map((row, index) => {
           const isSelected =
             partialStart === row.key;
 
-          const isShaded =
+          const isAlternate =
             index % 2 === 1;
 
           const globalIndex =
@@ -280,14 +306,16 @@ export default function HomeScreen() {
             <View
               key={row.key}
               style={[
-                styles.row,
-                isShaded &&
-                  styles.rowShaded,
+                styles.stationRow,
+                isAlternate &&
+                  styles.stationRowAlternate,
               ]}
             >
-              <Text style={styles.stationLabel}>
-                Stn{row.station}:
-              </Text>
+              <View style={styles.stationLabelBox}>
+                <Text style={styles.stationLabel}>
+                  Stn{row.station}:
+                </Text>
+              </View>
 
               <TextInput
                 ref={(ref) => {
@@ -297,7 +325,8 @@ export default function HomeScreen() {
                 onChangeText={(text) =>
                   updateValue(row.key, text)
                 }
-                placeholder="Value"
+                placeholder="Enter value"
+                placeholderTextColor={COLORS.gray}
                 keyboardType="numeric"
                 returnKeyType={
                   isLastInput
@@ -314,6 +343,7 @@ export default function HomeScreen() {
               />
 
               <TouchableOpacity
+                activeOpacity={0.75}
                 style={[
                   styles.partialButton,
                   isSelected &&
@@ -330,7 +360,7 @@ export default function HomeScreen() {
                       styles.partialButtonTextSelected,
                   ]}
                 >
-                  Partial
+                  PARTIAL
                 </Text>
               </TouchableOpacity>
             </View>
@@ -343,16 +373,33 @@ export default function HomeScreen() {
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
-        <Text style={styles.title}>
-          T-Belt Entry
-        </Text>
+        <View style={styles.brandArea}>
+          <View style={styles.logoBox}>
+            <Text style={styles.logoLetter}>T</Text>
+            <View style={styles.logoStripe} />
+            <Text style={styles.logoSmallText}>
+              T-BELT
+            </Text>
+          </View>
 
-        <View style={styles.headerButtons}>
+          <View>
+            <Text style={styles.brandTitle}>
+              T-BELT
+            </Text>
+
+            <Text style={styles.brandSubtitle}>
+              STATION ENTRY
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.headerActions}>
           <TouchableOpacity
+            activeOpacity={0.75}
             style={[
-              styles.smallHeaderButton,
+              styles.headerButton,
               recipientOpen &&
-                styles.smallHeaderButtonActive,
+                styles.headerButtonActive,
             ]}
             onPress={() =>
               setRecipientOpen(
@@ -360,20 +407,19 @@ export default function HomeScreen() {
               )
             }
           >
-            <Text
-              style={
-                styles.smallHeaderButtonText
-              }
-            >
-              Recipient
+            <Text style={styles.headerIcon}>●</Text>
+
+            <Text style={styles.headerButtonText}>
+              ENGINEER
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
+            activeOpacity={0.75}
             style={[
-              styles.smallHeaderButton,
+              styles.headerButton,
               previewOpen &&
-                styles.smallHeaderButtonActive,
+                styles.headerButtonActive,
             ]}
             onPress={() =>
               setPreviewOpen(
@@ -381,73 +427,86 @@ export default function HomeScreen() {
               )
             }
           >
-            <Text
-              style={
-                styles.smallHeaderButtonText
-              }
-            >
-              Preview
+            <Text style={styles.headerIcon}>◉</Text>
+
+            <Text style={styles.headerButtonText}>
+              PREVIEW
             </Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {recipientOpen && (
-        <View style={styles.inlinePanel}>
-          <TextInput
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-            placeholder="Recipient phone number"
-            keyboardType="phone-pad"
-            style={styles.phoneInput}
-          />
+      <View style={styles.redHeaderLine} />
 
-          <TouchableOpacity
-            style={styles.closePanelButton}
-            onPress={() =>
-              setRecipientOpen(false)
-            }
-          >
-            <Text
-              style={
-                styles.closePanelButtonText
+      {recipientOpen && (
+        <View style={styles.dropdownPanel}>
+          <Text style={styles.panelLabel}>
+            ENGINEER'S PHONE NUMBER
+          </Text>
+
+          <View style={styles.recipientRow}>
+            <TextInput
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              placeholder="Enter phone number"
+              placeholderTextColor={COLORS.gray}
+              keyboardType="phone-pad"
+              style={styles.phoneInput}
+            />
+
+            <TouchableOpacity
+              style={styles.doneButton}
+              onPress={() =>
+                setRecipientOpen(false)
               }
             >
-              Done
-            </Text>
-          </TouchableOpacity>
+              <Text style={styles.doneButtonText}>
+                DONE
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 
       {previewOpen && (
-        <View style={styles.previewPanel}>
+        <View style={styles.dropdownPanel}>
+          <Text style={styles.panelLabel}>
+            MESSAGE PREVIEW
+          </Text>
+
           <Text style={styles.previewText}>
             {messagePreview}
           </Text>
         </View>
       )}
 
-      <View style={styles.beltsContainer}>
+      <View style={styles.content}>
         {renderBelt(1)}
         {renderBelt(2)}
       </View>
 
-      <View style={styles.bottomButtons}>
+      <View style={styles.bottomBar}>
         <TouchableOpacity
+          activeOpacity={0.75}
           style={styles.clearButton}
           onPress={clearEntry}
         >
+          <Text style={styles.clearIcon}>□</Text>
+
           <Text style={styles.clearButtonText}>
-            Clear
+            CLEAR ENTRY
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
+          activeOpacity={0.75}
           style={styles.sendButton}
           onPress={sendText}
         >
+          <Text style={styles.sendIcon}>➤</Text>
+
           <Text style={styles.sendButtonText}>
-            Send Text
+            SEND REPORT
           </Text>
         </TouchableOpacity>
       </View>
@@ -458,203 +517,423 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#f3f4f6',
-    paddingHorizontal: 10,
-    paddingTop: 42,
-    paddingBottom: 8,
+    backgroundColor: COLORS.charcoal,
   },
 
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+
+    paddingHorizontal: 18,
+    paddingTop: 18,
+    paddingBottom: 14,
+
+    backgroundColor: COLORS.charcoal,
   },
 
-  title: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#111',
-  },
-
-  headerButtons: {
+  brandArea: {
     flexDirection: 'row',
-    gap: 6,
+    alignItems: 'center',
+    gap: 12,
   },
 
-  smallHeaderButton: {
-    borderWidth: 1,
-    borderColor: '#c8ccd1',
+  logoBox: {
+    width: 58,
+    height: 58,
+
     borderRadius: 8,
-    paddingHorizontal: 9,
-    paddingVertical: 6,
-    backgroundColor: '#fff',
+
+    backgroundColor: COLORS.red,
+
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    borderWidth: 2,
+    borderColor: COLORS.darkRed,
   },
 
-  smallHeaderButtonActive: {
-    backgroundColor: '#e5e7eb',
+  logoLetter: {
+    color: COLORS.light,
+    fontSize: 30,
+    fontWeight: '900',
+    lineHeight: 31,
   },
 
-  smallHeaderButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#222',
+  logoStripe: {
+    width: 32,
+    height: 2,
+    backgroundColor: COLORS.light,
+    marginVertical: 2,
   },
 
-  inlinePanel: {
+  logoSmallText: {
+    color: COLORS.light,
+    fontSize: 9,
+    fontWeight: '900',
+  },
+
+  brandTitle: {
+    color: COLORS.light,
+    fontSize: 26,
+    fontWeight: '900',
+    letterSpacing: 0.4,
+  },
+
+  brandSubtitle: {
+    marginTop: 1,
+
+    color: COLORS.gray,
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+  },
+
+  headerActions: {
     flexDirection: 'row',
     gap: 8,
-    backgroundColor: '#fff',
+  },
+
+  headerButton: {
+    minHeight: 42,
+
+    flexDirection: 'row',
+    alignItems: 'center',
+
+    gap: 7,
+
+    paddingHorizontal: 13,
+
+    borderRadius: 7,
+
+    borderWidth: 1,
+    borderColor: COLORS.gray,
+
+    backgroundColor: COLORS.charcoal,
+  },
+
+  headerButtonActive: {
+    borderColor: COLORS.red,
+  },
+
+  headerIcon: {
+    color: COLORS.light,
+    fontSize: 13,
+  },
+
+  headerButtonText: {
+    color: COLORS.light,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+
+  redHeaderLine: {
+    height: 4,
+    backgroundColor: COLORS.red,
+  },
+
+  dropdownPanel: {
+    marginHorizontal: 18,
+    marginTop: 10,
+
+    padding: 12,
+
     borderRadius: 10,
-    padding: 8,
-    marginBottom: 6,
+
+    backgroundColor: COLORS.charcoal,
+
+    borderWidth: 1,
+    borderColor: COLORS.gray,
+  },
+
+  panelLabel: {
+    color: COLORS.red,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1,
+    marginBottom: 7,
+  },
+
+  recipientRow: {
+    flexDirection: 'row',
+    gap: 8,
   },
 
   phoneInput: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: '#c9cdd2',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    fontSize: 15,
-    backgroundColor: '#fff',
-  },
 
-  closePanelButton: {
-    justifyContent: 'center',
+    minHeight: 42,
+
     paddingHorizontal: 12,
-    borderRadius: 8,
-    backgroundColor: '#e5e7eb',
+
+    borderRadius: 7,
+
+    backgroundColor: COLORS.light,
+
+    color: COLORS.charcoal,
+
+    fontSize: 15,
+    fontWeight: '600',
   },
 
-  closePanelButtonText: {
-    fontWeight: '700',
-    fontSize: 13,
+  doneButton: {
+    justifyContent: 'center',
+
+    paddingHorizontal: 18,
+
+    borderRadius: 7,
+
+    backgroundColor: COLORS.red,
   },
 
-  previewPanel: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 8,
-    marginBottom: 6,
+  doneButtonText: {
+    color: COLORS.light,
+    fontWeight: '800',
   },
 
   previewText: {
+    color: COLORS.light,
     fontSize: 12,
-    lineHeight: 16,
-    color: '#222',
+    lineHeight: 17,
   },
 
-  beltsContainer: {
+  content: {
     flex: 1,
-    justifyContent: 'flex-start',
-    gap: 6,
+
+    paddingHorizontal: 18,
+    paddingTop: 12,
+
+    gap: 10,
   },
 
-  beltSection: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 7,
+  beltCard: {
+    flex: 1,
+
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+
+    borderRadius: 11,
+
+    backgroundColor: COLORS.charcoal,
+
+    borderWidth: 1,
+    borderColor: COLORS.gray,
+  },
+
+  beltHeader: {
+    minHeight: 34,
+
+    flexDirection: 'row',
+    alignItems: 'center',
+
+    gap: 9,
+  },
+
+  miniLogo: {
+    width: 24,
+    height: 24,
+
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    borderRadius: 3,
+
+    borderWidth: 2,
+    borderColor: COLORS.red,
+  },
+
+  miniLogoText: {
+    color: COLORS.red,
+    fontWeight: '900',
+    fontSize: 14,
   },
 
   beltTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    marginBottom: 3,
-    paddingHorizontal: 3,
-    color: '#111',
+    color: COLORS.light,
+    fontSize: 18,
+    fontWeight: '900',
   },
 
-  row: {
+  beltUnderline: {
+    width: 74,
+    height: 3,
+
+    marginTop: 4,
+
+    backgroundColor: COLORS.red,
+  },
+
+  divider: {
+    height: 1,
+
+    marginTop: 8,
+    marginBottom: 7,
+
+    backgroundColor: COLORS.gray,
+  },
+
+  stationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 41,
+
+    minHeight: 48,
+
+    gap: 8,
+
     paddingVertical: 3,
-    paddingHorizontal: 5,
-    borderRadius: 6,
-    gap: 6,
+    paddingHorizontal: 4,
+
+    borderRadius: 7,
   },
 
-  rowShaded: {
-    backgroundColor: '#e9edf1',
+  stationRowAlternate: {
+    backgroundColor: '#303030',
+  },
+
+  stationLabelBox: {
+    width: 66,
+
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    alignSelf: 'stretch',
+
+    borderRadius: 6,
+
+    backgroundColor: '#202020',
   },
 
   stationLabel: {
-    width: 46,
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#222',
+    color: COLORS.light,
+
+    fontSize: 15,
+    fontWeight: '800',
   },
 
   stationInput: {
     flex: 1,
-    minWidth: 60,
-    borderWidth: 1,
-    borderColor: '#c9cdd2',
-    borderRadius: 7,
-    paddingHorizontal: 8,
-    paddingVertical: 5,
+
+    height: 42,
+
+    paddingHorizontal: 12,
+
+    borderRadius: 6,
+
+    backgroundColor: COLORS.light,
+
+    color: COLORS.charcoal,
+
     fontSize: 16,
-    backgroundColor: '#fff',
+    fontWeight: '600',
+
+    borderWidth: 1,
+    borderColor: COLORS.gray,
   },
 
   partialButton: {
-    width: 64,
-    borderWidth: 1,
-    borderColor: '#b7bcc2',
-    borderRadius: 7,
-    paddingVertical: 7,
+    width: 105,
+    height: 42,
+
     alignItems: 'center',
-    backgroundColor: '#fff',
+    justifyContent: 'center',
+
+    borderRadius: 6,
+
+    borderWidth: 1,
+    borderColor: COLORS.gray,
+
+    backgroundColor: COLORS.charcoal,
   },
 
   partialButtonSelected: {
-    backgroundColor: '#1d4ed8',
-    borderColor: '#1d4ed8',
+    backgroundColor: COLORS.red,
+    borderColor: COLORS.red,
   },
 
   partialButtonText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#333',
+    color: COLORS.red,
+
+    fontSize: 13,
+    fontWeight: '900',
   },
 
   partialButtonTextSelected: {
-    color: '#fff',
+    color: COLORS.light,
   },
 
-  bottomButtons: {
+  bottomBar: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 6,
+
+    gap: 10,
+
+    paddingHorizontal: 18,
+    paddingTop: 10,
+    paddingBottom: 14,
+
+    backgroundColor: COLORS.charcoal,
   },
 
   clearButton: {
     flex: 1,
-    backgroundColor: '#e5e7eb',
-    paddingVertical: 11,
-    borderRadius: 11,
+
+    minHeight: 54,
+
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+
+    gap: 10,
+
+    borderRadius: 8,
+
+    borderWidth: 1,
+    borderColor: COLORS.gray,
+
+    backgroundColor: COLORS.charcoal,
+  },
+
+  clearIcon: {
+    color: COLORS.light,
+    fontSize: 18,
+    fontWeight: '800',
   },
 
   clearButtonText: {
-    color: '#222',
-    fontSize: 17,
-    fontWeight: '700',
+    color: COLORS.light,
+
+    fontSize: 15,
+    fontWeight: '900',
   },
 
   sendButton: {
-    flex: 2,
-    backgroundColor: '#111',
-    paddingVertical: 11,
-    borderRadius: 11,
+    flex: 1.65,
+
+    minHeight: 54,
+
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+
+    gap: 10,
+
+    borderRadius: 8,
+
+    backgroundColor: COLORS.red,
+
+    borderWidth: 1,
+    borderColor: COLORS.darkRed,
+  },
+
+  sendIcon: {
+    color: COLORS.light,
+    fontSize: 20,
+    fontWeight: '900',
   },
 
   sendButtonText: {
-    color: '#fff',
-    fontSize: 17,
-    fontWeight: '700',
+    color: COLORS.light,
+
+    fontSize: 15,
+    fontWeight: '900',
   },
 });
