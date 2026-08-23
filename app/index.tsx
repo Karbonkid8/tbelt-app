@@ -4,6 +4,7 @@ import {
   Alert,
   Linking,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -67,12 +68,16 @@ export default function HomeScreen() {
   const [partialStart, setPartialStart] =
     useState<StationKey | null>(null);
 
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneNumber, setPhoneNumber] =
+    useState('');
 
   const [recipientOpen, setRecipientOpen] =
     useState(true);
 
   const [previewOpen, setPreviewOpen] =
+    useState(false);
+
+  const [compactView, setCompactView] =
     useState(false);
 
   const inputRefs = useRef<
@@ -100,18 +105,24 @@ export default function HomeScreen() {
     }));
   }
 
-  function togglePartialStart(key: StationKey) {
+  function togglePartialStart(
+    key: StationKey
+  ) {
     setPartialStart((current) =>
       current === key ? null : key
     );
   }
 
-  function focusNextInput(currentKey: StationKey) {
-    const currentIndex = stationRows.findIndex(
-      (row) => row.key === currentKey
-    );
+  function focusNextInput(
+    currentKey: StationKey
+  ) {
+    const currentIndex =
+      stationRows.findIndex(
+        (row) => row.key === currentKey
+      );
 
-    const nextRow = stationRows[currentIndex + 1];
+    const nextRow =
+      stationRows[currentIndex + 1];
 
     if (nextRow) {
       inputRefs.current[nextRow.key]?.focus();
@@ -123,7 +134,8 @@ export default function HomeScreen() {
       key: StationKey,
       station: number
     ) => {
-      const value = values[key].trim();
+      const value =
+        values[key].trim();
 
       const marker =
         partialStart === key
@@ -167,9 +179,10 @@ export default function HomeScreen() {
       Platform.OS === 'web' &&
       typeof window !== 'undefined'
     ) {
-      const confirmed = window.confirm(
-        'Clear all station values and the Start selection? The recipient will stay saved.'
-      );
+      const confirmed =
+        window.confirm(
+          'Clear all station values and the Start selection? The engineer phone number will stay saved.'
+        );
 
       if (confirmed) {
         performClear();
@@ -180,7 +193,7 @@ export default function HomeScreen() {
 
     Alert.alert(
       'Clear Entry?',
-      'This will clear all station values and the Start selection. The recipient will stay saved.',
+      'This will clear all station values and the Start selection. The engineer phone number will stay saved.',
       [
         {
           text: 'Cancel',
@@ -196,7 +209,8 @@ export default function HomeScreen() {
   }
 
   async function sendText() {
-    const phone = phoneNumber.trim();
+    const phone =
+      phoneNumber.trim();
 
     if (!phone) {
       if (
@@ -204,12 +218,12 @@ export default function HomeScreen() {
         typeof window !== 'undefined'
       ) {
         window.alert(
-          'Enter the recipient phone number before sending.'
+          "Enter the engineer's phone number before sending."
         );
       } else {
         Alert.alert(
           'Phone Number Required',
-          'Enter the recipient phone number before sending.'
+          "Enter the engineer's phone number before sending."
         );
       }
 
@@ -218,7 +232,9 @@ export default function HomeScreen() {
     }
 
     const encodedMessage =
-      encodeURIComponent(messagePreview);
+      encodeURIComponent(
+        messagePreview
+      );
 
     const smsUrl =
       `sms:${phone}?body=${encodedMessage}`;
@@ -228,12 +244,16 @@ export default function HomeScreen() {
         Platform.OS === 'web' &&
         typeof window !== 'undefined'
       ) {
-        window.location.href = smsUrl;
+        window.location.href =
+          smsUrl;
+
         return;
       }
 
       const supported =
-        await Linking.canOpenURL(smsUrl);
+        await Linking.canOpenURL(
+          smsUrl
+        );
 
       if (!supported) {
         Alert.alert(
@@ -244,7 +264,9 @@ export default function HomeScreen() {
         return;
       }
 
-      await Linking.openURL(smsUrl);
+      await Linking.openURL(
+        smsUrl
+      );
     } catch {
       if (
         Platform.OS === 'web' &&
@@ -262,162 +284,350 @@ export default function HomeScreen() {
     }
   }
 
-  function renderBelt(beltNumber: 1 | 2) {
-    const rows = stationRows.filter(
-      (row) => row.belt === beltNumber
-    );
+  function renderBelt(
+    beltNumber: 1 | 2
+  ) {
+    const rows =
+      stationRows.filter(
+        (row) =>
+          row.belt === beltNumber
+      );
 
     return (
-      <View style={styles.beltCard}>
-        <View style={styles.beltHeader}>
-          <View style={styles.beltHeaderLeft}>
-            <View style={styles.miniLogo}>
-              <Text style={styles.miniLogoText}>T</Text>
+      <View
+        style={[
+          styles.beltCard,
+          compactView &&
+            styles.beltCardCompact,
+        ]}
+      >
+        <View
+          style={[
+            styles.beltHeader,
+            compactView &&
+              styles.beltHeaderCompact,
+          ]}
+        >
+          <View
+            style={
+              styles.beltHeaderLeft
+            }
+          >
+            <View
+              style={[
+                styles.miniLogo,
+                compactView &&
+                  styles.miniLogoCompact,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.miniLogoText,
+                  compactView &&
+                    styles.miniLogoTextCompact,
+                ]}
+              >
+                T
+              </Text>
             </View>
 
             <View>
-              <Text style={styles.beltTitle}>
+              <Text
+                style={[
+                  styles.beltTitle,
+                  compactView &&
+                    styles.beltTitleCompact,
+                ]}
+              >
                 T-BELT {beltNumber}
               </Text>
 
-              <View style={styles.beltUnderline} />
+              <View
+                style={[
+                  styles.beltUnderline,
+                  compactView &&
+                    styles.beltUnderlineCompact,
+                ]}
+              />
             </View>
           </View>
 
-          <Text style={styles.startHeaderLabel}>
+          <Text
+            style={[
+              styles.startHeaderLabel,
+              compactView &&
+                styles.startHeaderLabelCompact,
+            ]}
+          >
             START
           </Text>
         </View>
 
-        <View style={styles.divider} />
+        <View
+          style={[
+            styles.divider,
+            compactView &&
+              styles.dividerCompact,
+          ]}
+        />
 
-        {rows.map((row, index) => {
-          const isSelected =
-            partialStart === row.key;
+        {rows.map(
+          (row, index) => {
+            const isSelected =
+              partialStart ===
+              row.key;
 
-          const isAlternate =
-            index % 2 === 1;
+            const isAlternate =
+              index % 2 === 1;
 
-          const globalIndex =
-            stationRows.findIndex(
-              (stationRow) =>
-                stationRow.key === row.key
-            );
+            const globalIndex =
+              stationRows.findIndex(
+                (stationRow) =>
+                  stationRow.key ===
+                  row.key
+              );
 
-          const isLastInput =
-            globalIndex ===
-            stationRows.length - 1;
+            const isLastInput =
+              globalIndex ===
+              stationRows.length -
+                1;
 
-          return (
-            <View
-              key={row.key}
-              style={[
-                styles.stationRow,
-                isAlternate &&
-                  styles.stationRowAlternate,
-              ]}
-            >
-              <View style={styles.stationLabelBox}>
-                <Text style={styles.stationLabel}>
-                  Stn{row.station}:
-                </Text>
-              </View>
-
-              <TextInput
-                ref={(ref) => {
-                  inputRefs.current[row.key] = ref;
-                }}
-                value={values[row.key]}
-                onChangeText={(text) =>
-                  updateValue(row.key, text)
-                }
-                placeholder="Enter value"
-                placeholderTextColor={COLORS.gray}
-                keyboardType="numeric"
-                returnKeyType={
-                  isLastInput
-                    ? 'done'
-                    : 'next'
-                }
-                blurOnSubmit={isLastInput}
-                onSubmitEditing={() => {
-                  if (!isLastInput) {
-                    focusNextInput(row.key);
-                  }
-                }}
-                style={styles.stationInput}
-              />
-
-              <TouchableOpacity
-                activeOpacity={0.75}
+            return (
+              <View
+                key={row.key}
                 style={[
-                  styles.partialButton,
-                  isSelected &&
-                    styles.partialButtonSelected,
+                  styles.stationRow,
+
+                  isAlternate &&
+                    styles.stationRowAlternate,
+
+                  compactView &&
+                    styles.stationRowCompact,
                 ]}
-                onPress={() =>
-                  togglePartialStart(row.key)
-                }
               >
-                <Text
+                <View
                   style={[
-                    styles.markerIcon,
-                    isSelected &&
-                      styles.markerIconSelected,
+                    styles.stationLabelBox,
+                    compactView &&
+                      styles.stationLabelBoxCompact,
                   ]}
                 >
-                  {isSelected ? '●' : '⌖'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          );
-        })}
+                  <Text
+                    style={[
+                      styles.stationLabel,
+                      compactView &&
+                        styles.stationLabelCompact,
+                    ]}
+                  >
+                    Stn
+                    {row.station}:
+                  </Text>
+                </View>
+
+                <TextInput
+                  ref={(ref) => {
+                    inputRefs.current[
+                      row.key
+                    ] = ref;
+                  }}
+                  value={
+                    values[
+                      row.key
+                    ]
+                  }
+                  onChangeText={(
+                    text
+                  ) =>
+                    updateValue(
+                      row.key,
+                      text
+                    )
+                  }
+                  placeholder="Enter value"
+                  placeholderTextColor={
+                    COLORS.gray
+                  }
+                  keyboardType="numeric"
+                  returnKeyType={
+                    isLastInput
+                      ? 'done'
+                      : 'next'
+                  }
+                  blurOnSubmit={
+                    isLastInput
+                  }
+                  onSubmitEditing={() => {
+                    if (
+                      !isLastInput
+                    ) {
+                      focusNextInput(
+                        row.key
+                      );
+                    }
+                  }}
+                  style={[
+                    styles.stationInput,
+                    compactView &&
+                      styles.stationInputCompact,
+                  ]}
+                />
+
+                <TouchableOpacity
+                  activeOpacity={
+                    0.75
+                  }
+                  style={[
+                    styles.markerButton,
+
+                    compactView &&
+                      styles.markerButtonCompact,
+
+                    isSelected &&
+                      styles.markerButtonSelected,
+                  ]}
+                  onPress={() =>
+                    togglePartialStart(
+                      row.key
+                    )
+                  }
+                >
+                  <Text
+                    style={[
+                      styles.markerIcon,
+
+                      compactView &&
+                        styles.markerIconCompact,
+
+                      isSelected &&
+                        styles.markerIconSelected,
+                    ]}
+                  >
+                    {isSelected
+                      ? '●'
+                      : '⌖'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            );
+          }
+        )}
       </View>
     );
   }
 
   return (
     <View style={styles.screen}>
-      <View style={styles.header}>
-        <View style={styles.brandArea}>
-          <View style={styles.logoBox}>
-            <Text style={styles.logoLetter}>T</Text>
-            <View style={styles.logoStripe} />
-            <Text style={styles.logoSmallText}>
+      <View
+        style={[
+          styles.header,
+          compactView &&
+            styles.headerCompact,
+        ]}
+      >
+        <View
+          style={
+            styles.brandArea
+          }
+        >
+          {!compactView && (
+            <View
+              style={
+                styles.logoBox
+              }
+            >
+              <Text
+                style={
+                  styles.logoLetter
+                }
+              >
+                T
+              </Text>
+
+              <View
+                style={
+                  styles.logoStripe
+                }
+              />
+
+              <Text
+                style={
+                  styles.logoSmallText
+                }
+              >
+                T-BELT
+              </Text>
+            </View>
+          )}
+
+          <View
+            style={
+              styles.brandText
+            }
+          >
+            <Text
+              style={[
+                styles.brandTitle,
+                compactView &&
+                  styles.brandTitleCompact,
+              ]}
+            >
               T-BELT
             </Text>
-          </View>
 
-          <View>
-            <Text style={styles.brandTitle}>
-              T-BELT
-            </Text>
-
-            <Text style={styles.brandSubtitle}>
-              STATION ENTRY
-            </Text>
+            {!compactView && (
+              <Text
+                style={
+                  styles.brandSubtitle
+                }
+              >
+                STATION ENTRY
+              </Text>
+            )}
           </View>
         </View>
 
-        <View style={styles.headerActions}>
+        <View
+          style={[
+            styles.headerActions,
+            compactView &&
+              styles.headerActionsCompact,
+          ]}
+        >
           <TouchableOpacity
             activeOpacity={0.75}
             style={[
               styles.headerButton,
+
+              compactView &&
+                styles.headerButtonCompact,
+
               recipientOpen &&
                 styles.headerButtonActive,
             ]}
             onPress={() =>
               setRecipientOpen(
-                (current) => !current
+                (current) =>
+                  !current
               )
             }
           >
-            <Text style={styles.headerIcon}>
-              {recipientOpen ? '▲' : '▼'}
+            <Text
+              style={
+                styles.headerIcon
+              }
+            >
+              {recipientOpen
+                ? '▲'
+                : '▼'}
             </Text>
 
-            <Text style={styles.headerButtonText}>
+            <Text
+              style={[
+                styles.headerButtonText,
+                compactView &&
+                  styles.headerButtonTextCompact,
+              ]}
+            >
               ENGINEER'S #
             </Text>
           </TouchableOpacity>
@@ -426,51 +636,149 @@ export default function HomeScreen() {
             activeOpacity={0.75}
             style={[
               styles.headerButton,
+
+              compactView &&
+                styles.headerButtonCompact,
+
               previewOpen &&
                 styles.headerButtonActive,
             ]}
             onPress={() =>
               setPreviewOpen(
-                (current) => !current
+                (current) =>
+                  !current
               )
             }
           >
-            <Text style={styles.headerIcon}>
-              {previewOpen ? '▲' : '▼'}
+            <Text
+              style={
+                styles.headerIcon
+              }
+            >
+              {previewOpen
+                ? '▲'
+                : '▼'}
             </Text>
 
-            <Text style={styles.headerButtonText}>
+            <Text
+              style={[
+                styles.headerButtonText,
+                compactView &&
+                  styles.headerButtonTextCompact,
+              ]}
+            >
               PREVIEW
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.75}
+            style={[
+              styles.headerButton,
+
+              compactView &&
+                styles.headerButtonCompact,
+
+              compactView &&
+                styles.headerButtonActive,
+            ]}
+            onPress={() =>
+              setCompactView(
+                (current) =>
+                  !current
+              )
+            }
+          >
+            <Text
+              style={
+                styles.headerIcon
+              }
+            >
+              {compactView
+                ? '■'
+                : '□'}
+            </Text>
+
+            <Text
+              style={[
+                styles.headerButtonText,
+                compactView &&
+                  styles.headerButtonTextCompact,
+              ]}
+            >
+              COMPACT
             </Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      <View style={styles.redHeaderLine} />
+      <View
+        style={
+          styles.redHeaderLine
+        }
+      />
 
       {recipientOpen && (
-        <View style={styles.dropdownPanel}>
-          <Text style={styles.panelLabel}>
+        <View
+          style={[
+            styles.dropdownPanel,
+            compactView &&
+              styles.dropdownPanelCompact,
+          ]}
+        >
+          <Text
+            style={[
+              styles.panelLabel,
+              compactView &&
+                styles.panelLabelCompact,
+            ]}
+          >
             ENGINEER'S PHONE NUMBER
           </Text>
 
-          <View style={styles.recipientRow}>
+          <View
+            style={
+              styles.recipientRow
+            }
+          >
             <TextInput
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
+              value={
+                phoneNumber
+              }
+              onChangeText={
+                setPhoneNumber
+              }
               placeholder="Enter phone number"
-              placeholderTextColor={COLORS.gray}
+              placeholderTextColor={
+                COLORS.gray
+              }
               keyboardType="phone-pad"
-              style={styles.phoneInput}
+              style={[
+                styles.phoneInput,
+                compactView &&
+                  styles.phoneInputCompact,
+              ]}
             />
 
             <TouchableOpacity
-              style={styles.doneButton}
+              style={[
+                styles.doneButton,
+                compactView &&
+                  styles.doneButtonCompact,
+              ]}
               onPress={() =>
-                setRecipientOpen(false)
+                setRecipientOpen(
+                  false
+                )
               }
             >
-              <Text style={styles.doneButtonText}>
+              <Text
+                style={[
+                  styles.doneButtonText,
+                  compactView &&
+                    styles.doneButtonTextCompact,
+                ]}
+              >
                 DONE
               </Text>
             </TouchableOpacity>
@@ -479,43 +787,121 @@ export default function HomeScreen() {
       )}
 
       {previewOpen && (
-        <View style={styles.dropdownPanel}>
-          <Text style={styles.panelLabel}>
+        <View
+          style={[
+            styles.dropdownPanel,
+            compactView &&
+              styles.dropdownPanelCompact,
+          ]}
+        >
+          <Text
+            style={[
+              styles.panelLabel,
+              compactView &&
+                styles.panelLabelCompact,
+            ]}
+          >
             MESSAGE PREVIEW
           </Text>
 
-          <Text style={styles.previewText}>
+          <Text
+            style={[
+              styles.previewText,
+              compactView &&
+                styles.previewTextCompact,
+            ]}
+          >
             {messagePreview}
           </Text>
         </View>
       )}
 
-      <View style={styles.content}>
+      <ScrollView
+        style={
+          styles.scrollArea
+        }
+        contentContainerStyle={[
+          styles.content,
+
+          compactView &&
+            styles.contentCompact,
+        ]}
+        showsVerticalScrollIndicator={
+          true
+        }
+        keyboardShouldPersistTaps="handled"
+      >
         {renderBelt(1)}
         {renderBelt(2)}
-      </View>
+      </ScrollView>
 
-      <View style={styles.bottomBar}>
+      <View
+        style={[
+          styles.bottomBar,
+          compactView &&
+            styles.bottomBarCompact,
+        ]}
+      >
         <TouchableOpacity
           activeOpacity={0.75}
-          style={styles.clearButton}
-          onPress={clearEntry}
+          style={[
+            styles.clearButton,
+            compactView &&
+              styles.actionButtonCompact,
+          ]}
+          onPress={
+            clearEntry
+          }
         >
-          <Text style={styles.clearIcon}>□</Text>
+          <Text
+            style={[
+              styles.clearIcon,
+              compactView &&
+                styles.actionIconCompact,
+            ]}
+          >
+            □
+          </Text>
 
-          <Text style={styles.clearButtonText}>
+          <Text
+            style={[
+              styles.clearButtonText,
+              compactView &&
+                styles.actionTextCompact,
+            ]}
+          >
             CLEAR ENTRY
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           activeOpacity={0.75}
-          style={styles.sendButton}
-          onPress={sendText}
+          style={[
+            styles.sendButton,
+            compactView &&
+              styles.actionButtonCompact,
+          ]}
+          onPress={
+            sendText
+          }
         >
-          <Text style={styles.sendIcon}>➤</Text>
+          <Text
+            style={[
+              styles.sendIcon,
+              compactView &&
+                styles.actionIconCompact,
+            ]}
+          >
+            ➤
+          </Text>
 
-          <Text style={styles.sendButtonText}>
+          <Text
+            style={[
+              styles.sendButtonText,
+              compactView &&
+                styles.actionTextCompact,
+            ]}
+          >
             SEND REPORT
           </Text>
         </TouchableOpacity>
@@ -524,450 +910,751 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: COLORS.charcoal,
-  },
-
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-
-    paddingHorizontal: 18,
-    paddingTop: 18,
-    paddingBottom: 14,
-
-    backgroundColor: COLORS.charcoal,
-  },
-
-  brandArea: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-
-  logoBox: {
-    width: 58,
-    height: 58,
-
-    borderRadius: 8,
-
-    backgroundColor: COLORS.red,
-
-    alignItems: 'center',
-    justifyContent: 'center',
-
-    borderWidth: 2,
-    borderColor: COLORS.darkRed,
-  },
-
-  logoLetter: {
-    color: COLORS.light,
-    fontSize: 30,
-    fontWeight: '900',
-    lineHeight: 31,
-  },
-
-  logoStripe: {
-    width: 32,
-    height: 2,
-    backgroundColor: COLORS.light,
-    marginVertical: 2,
-  },
-
-  logoSmallText: {
-    color: COLORS.light,
-    fontSize: 9,
-    fontWeight: '900',
-  },
+const styles =
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      width: '100%',
+      backgroundColor:
+        COLORS.charcoal,
+    },
 
-  brandTitle: {
-    color: COLORS.light,
-    fontSize: 26,
-    fontWeight: '900',
-    letterSpacing: 0.4,
-  },
+    header: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
 
-  brandSubtitle: {
-    marginTop: 1,
+      justifyContent:
+        'space-between',
 
-    color: COLORS.gray,
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-  },
+      alignItems: 'center',
 
-  headerActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
+      paddingHorizontal: 12,
+      paddingTop: 10,
+      paddingBottom: 9,
 
-  headerButton: {
-    minHeight: 42,
+      backgroundColor:
+        COLORS.charcoal,
 
-    flexDirection: 'row',
-    alignItems: 'center',
+      gap: 8,
+    },
 
-    gap: 7,
+    headerCompact: {
+      paddingHorizontal: 5,
+      paddingTop: 3,
+      paddingBottom: 3,
 
-    paddingHorizontal: 13,
+      gap: 3,
+    },
 
-    borderRadius: 7,
+    brandArea: {
+      flexDirection: 'row',
+      alignItems: 'center',
 
-    borderWidth: 1,
-    borderColor: COLORS.gray,
+      flexShrink: 1,
+      minWidth: 0,
 
-    backgroundColor: COLORS.charcoal,
-  },
+      gap: 9,
+    },
 
-  headerButtonActive: {
-    borderColor: COLORS.red,
-  },
+    brandText: {
+      flexShrink: 1,
+      minWidth: 0,
+    },
 
-  headerIcon: {
-    color: COLORS.red,
-    fontSize: 12,
-    fontWeight: '900',
-  },
+    logoBox: {
+      width: 48,
+      height: 48,
 
-  headerButtonText: {
-    color: COLORS.light,
-    fontSize: 12,
-    fontWeight: '800',
-  },
+      flexShrink: 0,
 
-  redHeaderLine: {
-    height: 4,
-    backgroundColor: COLORS.red,
-  },
+      borderRadius: 7,
 
-  dropdownPanel: {
-    marginHorizontal: 18,
-    marginTop: 10,
+      backgroundColor:
+        COLORS.red,
 
-    padding: 12,
+      alignItems: 'center',
+      justifyContent:
+        'center',
 
-    borderRadius: 10,
+      borderWidth: 2,
+      borderColor:
+        COLORS.darkRed,
+    },
 
-    backgroundColor: COLORS.charcoal,
+    logoLetter: {
+      color: COLORS.light,
 
-    borderWidth: 1,
-    borderColor: COLORS.gray,
-  },
+      fontSize: 25,
+      fontWeight: '900',
+      lineHeight: 26,
+    },
 
-  panelLabel: {
-    color: COLORS.red,
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 1,
-    marginBottom: 7,
-  },
+    logoStripe: {
+      width: 27,
+      height: 2,
 
-  recipientRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
+      backgroundColor:
+        COLORS.light,
 
-  phoneInput: {
-    flex: 1,
+      marginVertical: 1,
+    },
 
-    minHeight: 42,
+    logoSmallText: {
+      color: COLORS.light,
 
-    paddingHorizontal: 12,
+      fontSize: 8,
+      fontWeight: '900',
+    },
 
-    borderRadius: 7,
+    brandTitle: {
+      color: COLORS.light,
 
-    backgroundColor: COLORS.light,
+      fontSize: 22,
+      fontWeight: '900',
 
-    color: COLORS.charcoal,
+      letterSpacing: 0.3,
+    },
 
-    fontSize: 15,
-    fontWeight: '600',
-  },
+    brandTitleCompact: {
+      fontSize: 14,
+    },
 
-  doneButton: {
-    justifyContent: 'center',
+    brandSubtitle: {
+      marginTop: 0,
 
-    paddingHorizontal: 18,
+      color: COLORS.gray,
 
-    borderRadius: 7,
+      fontSize: 11,
+      fontWeight: '700',
 
-    backgroundColor: COLORS.red,
-  },
+      letterSpacing: 1,
+    },
 
-  doneButtonText: {
-    color: COLORS.light,
-    fontWeight: '800',
-  },
+    headerActions: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
 
-  previewText: {
-    color: COLORS.light,
-    fontSize: 12,
-    lineHeight: 17,
-  },
+      flexShrink: 0,
 
-  content: {
-    flex: 1,
+      gap: 6,
+    },
 
-    paddingHorizontal: 18,
-    paddingTop: 12,
+    headerActionsCompact: {
+      gap: 3,
+    },
 
-    gap: 10,
-  },
+    headerButton: {
+      minHeight: 38,
 
-  beltCard: {
-    flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
 
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+      gap: 5,
 
-    borderRadius: 11,
+      paddingHorizontal: 9,
 
-    backgroundColor: COLORS.charcoal,
+      borderRadius: 7,
 
-    borderWidth: 1,
-    borderColor: COLORS.gray,
-  },
+      borderWidth: 1,
+      borderColor:
+        COLORS.gray,
 
-  beltHeader: {
-    minHeight: 34,
+      backgroundColor:
+        COLORS.charcoal,
+    },
 
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    headerButtonCompact: {
+      minHeight: 26,
 
-    gap: 9,
-  },
+      paddingHorizontal: 5,
 
-  beltHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 9,
-  },
+      gap: 2,
+    },
 
-  miniLogo: {
-    width: 24,
-    height: 24,
+    headerButtonActive: {
+      borderColor:
+        COLORS.red,
+    },
 
-    alignItems: 'center',
-    justifyContent: 'center',
+    headerIcon: {
+      color: COLORS.red,
 
-    borderRadius: 3,
+      fontSize: 10,
+      fontWeight: '900',
+    },
 
-    borderWidth: 2,
-    borderColor: COLORS.red,
-  },
+    headerButtonText: {
+      color: COLORS.light,
 
-  miniLogoText: {
-    color: COLORS.red,
-    fontWeight: '900',
-    fontSize: 14,
-  },
+      fontSize: 10,
+      fontWeight: '800',
+    },
 
-  beltTitle: {
-    color: COLORS.light,
-    fontSize: 18,
-    fontWeight: '900',
-  },
+    headerButtonTextCompact: {
+      fontSize: 8,
+    },
 
-  beltUnderline: {
-    width: 74,
-    height: 3,
+    redHeaderLine: {
+      height: 3,
 
-    marginTop: 4,
+      backgroundColor:
+        COLORS.red,
+    },
 
-    backgroundColor: COLORS.red,
-  },
+    dropdownPanel: {
+      marginHorizontal: 12,
+      marginTop: 8,
 
-  startHeaderLabel: {
-    width: 52,
-    textAlign: 'center',
+      padding: 9,
 
-    color: COLORS.red,
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 0.7,
-  },
+      borderRadius: 9,
 
-  divider: {
-    height: 1,
+      backgroundColor:
+        COLORS.charcoal,
 
-    marginTop: 8,
-    marginBottom: 7,
+      borderWidth: 1,
+      borderColor:
+        COLORS.gray,
+    },
 
-    backgroundColor: COLORS.gray,
-  },
+    dropdownPanelCompact: {
+      marginHorizontal: 5,
+      marginTop: 4,
 
-  stationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+      padding: 5,
 
-    minHeight: 48,
+      borderRadius: 6,
+    },
 
-    gap: 6,
+    panelLabel: {
+      color: COLORS.red,
 
-    paddingVertical: 3,
-    paddingHorizontal: 4,
+      fontSize: 10,
+      fontWeight: '800',
 
-    borderRadius: 7,
-  },
+      letterSpacing: 1,
 
-  stationRowAlternate: {
-    backgroundColor: '#303030',
-  },
+      marginBottom: 6,
+    },
 
-  stationLabelBox: {
-    width: 56,
+    panelLabelCompact: {
+      fontSize: 7,
 
-    alignItems: 'center',
-    justifyContent: 'center',
+      marginBottom: 3,
+    },
 
-    alignSelf: 'stretch',
+    recipientRow: {
+      flexDirection: 'row',
 
-    borderRadius: 6,
+      gap: 7,
+    },
 
-    backgroundColor: '#202020',
-  },
+    phoneInput: {
+      flex: 1,
+      minWidth: 0,
 
-  stationLabel: {
-    color: COLORS.light,
+      height: 38,
 
-    fontSize: 14,
-    fontWeight: '800',
-  },
+      paddingHorizontal: 10,
 
-  stationInput: {
-    flex: 1,
-    minWidth: 0,
+      borderRadius: 7,
 
-    height: 42,
+      backgroundColor:
+        COLORS.light,
 
-    paddingHorizontal: 10,
+      color:
+        COLORS.charcoal,
 
-    borderRadius: 6,
+      fontSize: 15,
+      fontWeight: '600',
+    },
 
-    backgroundColor: COLORS.light,
+    phoneInputCompact: {
+      height: 27,
 
-    color: COLORS.charcoal,
+      fontSize: 12,
 
-    fontSize: 16,
-    fontWeight: '600',
+      paddingHorizontal: 6,
 
-    borderWidth: 1,
-    borderColor: COLORS.gray,
-  },
+      borderRadius: 4,
+    },
 
-  partialButton: {
-    width: 52,
-    height: 44,
-    flexShrink: 0,
+    doneButton: {
+      minWidth: 70,
 
-    alignItems: 'center',
-    justifyContent: 'center',
+      justifyContent:
+        'center',
 
-    borderRadius: 8,
+      alignItems: 'center',
 
-    borderWidth: 2,
-    borderColor: COLORS.gray,
+      paddingHorizontal: 12,
 
-    backgroundColor: COLORS.charcoal,
-  },
+      borderRadius: 7,
 
-  partialButtonSelected: {
-    backgroundColor: COLORS.red,
-    borderColor: COLORS.darkRed,
-    borderWidth: 3,
-  },
+      backgroundColor:
+        COLORS.red,
+    },
 
-  markerIcon: {
-    color: COLORS.red,
+    doneButtonCompact: {
+      minWidth: 48,
 
-    fontSize: 21,
-    fontWeight: '900',
-  },
+      paddingHorizontal: 6,
 
-  markerIconSelected: {
-    color: '#FFFFFF',
+      borderRadius: 4,
+    },
 
-    fontSize: 25,
-    fontWeight: '900',
-  },
+    doneButtonText: {
+      color: COLORS.light,
 
-  bottomBar: {
-    flexDirection: 'row',
+      fontSize: 12,
+      fontWeight: '800',
+    },
 
-    gap: 10,
+    doneButtonTextCompact: {
+      fontSize: 9,
+    },
 
-    paddingHorizontal: 18,
-    paddingTop: 10,
-    paddingBottom: 14,
+    previewText: {
+      color: COLORS.light,
 
-    backgroundColor: COLORS.charcoal,
-  },
+      fontSize: 12,
+      lineHeight: 17,
+    },
 
-  clearButton: {
-    flex: 1,
+    previewTextCompact: {
+      fontSize: 9,
+      lineHeight: 12,
+    },
 
-    minHeight: 54,
+    scrollArea: {
+      flex: 1,
+      width: '100%',
+    },
 
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    content: {
+      width: '100%',
 
-    gap: 10,
+      paddingHorizontal: 12,
+      paddingTop: 8,
+      paddingBottom: 10,
 
-    borderRadius: 8,
+      gap: 10,
+    },
 
-    borderWidth: 1,
-    borderColor: COLORS.gray,
+    contentCompact: {
+      paddingHorizontal: 5,
+      paddingTop: 4,
+      paddingBottom: 4,
 
-    backgroundColor: COLORS.charcoal,
-  },
+      gap: 4,
+    },
 
-  clearIcon: {
-    color: COLORS.light,
-    fontSize: 18,
-    fontWeight: '800',
-  },
+    beltCard: {
+      width: '100%',
 
-  clearButtonText: {
-    color: COLORS.light,
+      paddingHorizontal: 10,
+      paddingVertical: 8,
 
-    fontSize: 15,
-    fontWeight: '900',
-  },
+      borderRadius: 10,
 
-  sendButton: {
-    flex: 1.65,
+      backgroundColor:
+        COLORS.charcoal,
 
-    minHeight: 54,
+      borderWidth: 1,
+      borderColor:
+        COLORS.gray,
+    },
 
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    beltCardCompact: {
+      paddingHorizontal: 5,
+      paddingVertical: 4,
 
-    gap: 10,
+      borderRadius: 7,
+    },
 
-    borderRadius: 8,
+    beltHeader: {
+      minHeight: 30,
 
-    backgroundColor: COLORS.red,
+      flexDirection: 'row',
 
-    borderWidth: 1,
-    borderColor: COLORS.darkRed,
-  },
+      alignItems: 'center',
 
-  sendIcon: {
-    color: COLORS.light,
-    fontSize: 20,
-    fontWeight: '900',
-  },
+      justifyContent:
+        'space-between',
 
-  sendButtonText: {
-    color: COLORS.light,
+      gap: 7,
+    },
 
-    fontSize: 15,
-    fontWeight: '900',
-  },
-});
+    beltHeaderCompact: {
+      minHeight: 20,
+    },
+
+    beltHeaderLeft: {
+      flexDirection: 'row',
+
+      alignItems: 'center',
+
+      gap: 7,
+    },
+
+    miniLogo: {
+      width: 22,
+      height: 22,
+
+      alignItems: 'center',
+      justifyContent:
+        'center',
+
+      borderRadius: 3,
+
+      borderWidth: 2,
+
+      borderColor:
+        COLORS.red,
+    },
+
+    miniLogoCompact: {
+      width: 14,
+      height: 14,
+
+      borderWidth: 1,
+    },
+
+    miniLogoText: {
+      color: COLORS.red,
+
+      fontWeight: '900',
+
+      fontSize: 13,
+    },
+
+    miniLogoTextCompact: {
+      fontSize: 8,
+    },
+
+    beltTitle: {
+      color: COLORS.light,
+
+      fontSize: 17,
+      fontWeight: '900',
+    },
+
+    beltTitleCompact: {
+      fontSize: 12,
+    },
+
+    beltUnderline: {
+      width: 68,
+      height: 3,
+
+      marginTop: 3,
+
+      backgroundColor:
+        COLORS.red,
+    },
+
+    beltUnderlineCompact: {
+      width: 42,
+      height: 2,
+
+      marginTop: 1,
+    },
+
+    startHeaderLabel: {
+      width: 46,
+
+      textAlign: 'center',
+
+      color: COLORS.red,
+
+      fontSize: 9,
+      fontWeight: '900',
+
+      letterSpacing: 0.7,
+    },
+
+    startHeaderLabelCompact: {
+      width: 32,
+
+      fontSize: 6,
+    },
+
+    divider: {
+      height: 1,
+
+      marginTop: 6,
+      marginBottom: 5,
+
+      backgroundColor:
+        COLORS.gray,
+    },
+
+    dividerCompact: {
+      marginTop: 3,
+      marginBottom: 2,
+    },
+
+    stationRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+
+      minHeight: 42,
+
+      gap: 5,
+
+      paddingVertical: 2,
+      paddingHorizontal: 3,
+
+      borderRadius: 6,
+    },
+
+    stationRowCompact: {
+      minHeight: 28,
+
+      gap: 3,
+
+      paddingVertical: 1,
+      paddingHorizontal: 1,
+    },
+
+    stationRowAlternate: {
+      backgroundColor:
+        '#303030',
+    },
+
+    stationLabelBox: {
+      width: 52,
+
+      alignItems: 'center',
+      justifyContent:
+        'center',
+
+      alignSelf: 'stretch',
+
+      borderRadius: 5,
+
+      backgroundColor:
+        '#202020',
+    },
+
+    stationLabelBoxCompact: {
+      width: 38,
+
+      borderRadius: 3,
+    },
+
+    stationLabel: {
+      color: COLORS.light,
+
+      fontSize: 13,
+      fontWeight: '800',
+    },
+
+    stationLabelCompact: {
+      fontSize: 9,
+    },
+
+    stationInput: {
+      flex: 1,
+      minWidth: 0,
+
+      height: 37,
+
+      paddingHorizontal: 9,
+
+      borderRadius: 6,
+
+      backgroundColor:
+        COLORS.light,
+
+      color:
+        COLORS.charcoal,
+
+      fontSize: 15,
+      fontWeight: '600',
+
+      borderWidth: 1,
+      borderColor:
+        COLORS.gray,
+    },
+
+    stationInputCompact: {
+      height: 26,
+
+      paddingHorizontal: 5,
+
+      fontSize: 11,
+
+      borderRadius: 4,
+    },
+
+    markerButton: {
+      width: 46,
+      height: 38,
+
+      flexShrink: 0,
+
+      alignItems: 'center',
+      justifyContent:
+        'center',
+
+      borderRadius: 7,
+
+      borderWidth: 2,
+      borderColor:
+        COLORS.gray,
+
+      backgroundColor:
+        COLORS.charcoal,
+    },
+
+    markerButtonCompact: {
+      width: 31,
+      height: 27,
+
+      borderRadius: 5,
+    },
+
+    markerButtonSelected: {
+      backgroundColor:
+        COLORS.red,
+
+      borderColor:
+        COLORS.darkRed,
+
+      borderWidth: 3,
+    },
+
+    markerIcon: {
+      color: COLORS.red,
+
+      fontSize: 19,
+
+      fontWeight: '900',
+    },
+
+    markerIconCompact: {
+      fontSize: 13,
+    },
+
+    markerIconSelected: {
+      color: '#FFFFFF',
+
+      fontSize: 23,
+
+      fontWeight: '900',
+    },
+
+    bottomBar: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+
+      gap: 8,
+
+      paddingHorizontal: 12,
+      paddingTop: 7,
+      paddingBottom: 9,
+
+      backgroundColor:
+        COLORS.charcoal,
+    },
+
+    bottomBarCompact: {
+      gap: 4,
+
+      paddingHorizontal: 5,
+      paddingTop: 4,
+      paddingBottom: 4,
+    },
+
+    clearButton: {
+      flex: 1,
+
+      minWidth: 130,
+      minHeight: 48,
+
+      flexDirection: 'row',
+
+      alignItems: 'center',
+      justifyContent:
+        'center',
+
+      gap: 7,
+
+      borderRadius: 7,
+
+      borderWidth: 1,
+      borderColor:
+        COLORS.gray,
+
+      backgroundColor:
+        COLORS.charcoal,
+    },
+
+    clearIcon: {
+      color: COLORS.light,
+
+      fontSize: 16,
+
+      fontWeight: '800',
+    },
+
+    clearButtonText: {
+      color: COLORS.light,
+
+      fontSize: 13,
+      fontWeight: '900',
+    },
+
+    sendButton: {
+      flex: 1.65,
+
+      minWidth: 160,
+      minHeight: 48,
+
+      flexDirection: 'row',
+
+      alignItems: 'center',
+      justifyContent:
+        'center',
+
+      gap: 7,
+
+      borderRadius: 7,
+
+      backgroundColor:
+        COLORS.red,
+
+      borderWidth: 1,
+      borderColor:
+        COLORS.darkRed,
+    },
+
+    sendIcon: {
+      color: COLORS.light,
+
+      fontSize: 18,
+
+      fontWeight: '900',
+    },
+
+    sendButtonText: {
+      color: COLORS.light,
+
+      fontSize: 13,
+
+      fontWeight: '900',
+    },
+
+    actionButtonCompact: {
+      minHeight: 34,
+    },
+
+    actionIconCompact: {
+      fontSize: 12,
+    },
+
+    actionTextCompact: {
+      fontSize: 9,
+    },
+  });
