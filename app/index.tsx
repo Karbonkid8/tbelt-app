@@ -127,7 +127,7 @@ export default function HomeScreen() {
 
       const marker =
         partialStart === key
-          ? ' Partial/Start'
+          ? ' Start'
           : '';
 
       return `Stn${station}:${
@@ -168,7 +168,7 @@ export default function HomeScreen() {
       typeof window !== 'undefined'
     ) {
       const confirmed = window.confirm(
-        'Clear all station values and the Partial/Start selection? The recipient will stay saved.'
+        'Clear all station values and the Start selection? The recipient will stay saved.'
       );
 
       if (confirmed) {
@@ -180,7 +180,7 @@ export default function HomeScreen() {
 
     Alert.alert(
       'Clear Entry?',
-      'This will clear all station values and the Partial/Start selection. The recipient will stay saved.',
+      'This will clear all station values and the Start selection. The recipient will stay saved.',
       [
         {
           text: 'Cancel',
@@ -270,17 +270,23 @@ export default function HomeScreen() {
     return (
       <View style={styles.beltCard}>
         <View style={styles.beltHeader}>
-          <View style={styles.miniLogo}>
-            <Text style={styles.miniLogoText}>T</Text>
+          <View style={styles.beltHeaderLeft}>
+            <View style={styles.miniLogo}>
+              <Text style={styles.miniLogoText}>T</Text>
+            </View>
+
+            <View>
+              <Text style={styles.beltTitle}>
+                T-BELT {beltNumber}
+              </Text>
+
+              <View style={styles.beltUnderline} />
+            </View>
           </View>
 
-          <View>
-            <Text style={styles.beltTitle}>
-              T-BELT {beltNumber}
-            </Text>
-
-            <View style={styles.beltUnderline} />
-          </View>
+          <Text style={styles.startHeaderLabel}>
+            START
+          </Text>
         </View>
 
         <View style={styles.divider} />
@@ -355,12 +361,12 @@ export default function HomeScreen() {
               >
                 <Text
                   style={[
-                    styles.partialButtonText,
+                    styles.markerIcon,
                     isSelected &&
-                      styles.partialButtonTextSelected,
+                      styles.markerIconSelected,
                   ]}
                 >
-                  PARTIAL
+                  {isSelected ? '●' : '⌖'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -730,7 +736,14 @@ const styles = StyleSheet.create({
 
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
 
+    gap: 9,
+  },
+
+  beltHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 9,
   },
 
@@ -768,6 +781,16 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.red,
   },
 
+  startHeaderLabel: {
+    width: 52,
+    textAlign: 'center',
+
+    color: COLORS.red,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.7,
+  },
+
   divider: {
     height: 1,
 
@@ -783,7 +806,7 @@ const styles = StyleSheet.create({
 
     minHeight: 48,
 
-    gap: 8,
+    gap: 6,
 
     paddingVertical: 3,
     paddingHorizontal: 4,
@@ -796,7 +819,7 @@ const styles = StyleSheet.create({
   },
 
   stationLabelBox: {
-    width: 66,
+    width: 56,
 
     alignItems: 'center',
     justifyContent: 'center',
@@ -811,16 +834,17 @@ const styles = StyleSheet.create({
   stationLabel: {
     color: COLORS.light,
 
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '800',
   },
 
   stationInput: {
     flex: 1,
+    minWidth: 0,
 
     height: 42,
 
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
 
     borderRadius: 6,
 
@@ -836,15 +860,16 @@ const styles = StyleSheet.create({
   },
 
   partialButton: {
-    width: 105,
-    height: 42,
+    width: 52,
+    height: 44,
+    flexShrink: 0,
 
     alignItems: 'center',
     justifyContent: 'center',
 
-    borderRadius: 6,
+    borderRadius: 8,
 
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: COLORS.gray,
 
     backgroundColor: COLORS.charcoal,
@@ -852,18 +877,22 @@ const styles = StyleSheet.create({
 
   partialButtonSelected: {
     backgroundColor: COLORS.red,
-    borderColor: COLORS.red,
+    borderColor: COLORS.darkRed,
+    borderWidth: 3,
   },
 
-  partialButtonText: {
+  markerIcon: {
     color: COLORS.red,
 
-    fontSize: 13,
+    fontSize: 21,
     fontWeight: '900',
   },
 
-  partialButtonTextSelected: {
-    color: COLORS.light,
+  markerIconSelected: {
+    color: '#FFFFFF',
+
+    fontSize: 25,
+    fontWeight: '900',
   },
 
   bottomBar: {
