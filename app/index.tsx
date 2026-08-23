@@ -70,7 +70,7 @@ export default function HomeScreen() {
   const [phoneNumber, setPhoneNumber] = useState('');
 
   const [recipientOpen, setRecipientOpen] =
-    useState(false);
+    useState(true);
 
   const [previewOpen, setPreviewOpen] =
     useState(false);
@@ -407,10 +407,12 @@ export default function HomeScreen() {
               )
             }
           >
-            <Text style={styles.headerIcon}>●</Text>
+            <Text style={styles.headerIcon}>
+              {recipientOpen ? '▲' : '▼'}
+            </Text>
 
             <Text style={styles.headerButtonText}>
-              ENGINEER
+              ENGINEER'S #
             </Text>
           </TouchableOpacity>
 
@@ -427,7 +429,9 @@ export default function HomeScreen() {
               )
             }
           >
-            <Text style={styles.headerIcon}>◉</Text>
+            <Text style={styles.headerIcon}>
+              {previewOpen ? '▲' : '▼'}
+            </Text>
 
             <Text style={styles.headerButtonText}>
               PREVIEW
@@ -617,8 +621,9 @@ const styles = StyleSheet.create({
   },
 
   headerIcon: {
-    color: COLORS.light,
-    fontSize: 13,
+    color: COLORS.red,
+    fontSize: 12,
+    fontWeight: '900',
   },
 
   headerButtonText: {
