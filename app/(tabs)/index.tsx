@@ -1,8 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Linking,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -51,8 +50,23 @@ export default function HomeScreen() {
   });
 
   const [partialStart, setPartialStart] = useState<StationKey | null>(null);
-
   const [phoneNumber, setPhoneNumber] = useState('');
+
+  const [recipientOpen, setRecipientOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  const inputRefs = useRef<Record<StationKey, TextInput | null>>({
+    b1s5: null,
+    b1s4: null,
+    b1s3: null,
+    b1s2: null,
+    b1s1: null,
+    b2s5: null,
+    b2s4: null,
+    b2s3: null,
+    b2s2: null,
+    b2s1: null,
+  });
 
   function updateValue(key: StationKey, value: string) {
     setValues((current) => ({
@@ -65,12 +79,24 @@ export default function HomeScreen() {
     setPartialStart((current) => (current === key ? null : key));
   }
 
+  function focusNextInput(currentKey: StationKey) {
+    const currentIndex = stationRows.findIndex(
+      (row) => row.key === currentKey
+    );
+
+    const nextRow = stationRows[currentIndex + 1];
+
+    if (nextRow) {
+      inputRefs.current[nextRow.key]?.focus();
+    }
+  }
+
   const messagePreview = useMemo(() => {
     const buildLine = (key: StationKey, station: number) => {
       const value = values[key].trim();
       const marker = partialStart === key ? ' Partial/Start' : '';
 
-      return `Stn ${station}${value ? ` ${value}` : ''}${marker}`;
+      return `Stn${station}:${value ? ` ${value}` : ''}${marker}`;
     };
 
     return [
@@ -98,11 +124,12 @@ export default function HomeScreen() {
         'Phone Number Required',
         'Enter the recipient phone number before sending.'
       );
+
+      setRecipientOpen(true);
       return;
     }
 
     const encodedMessage = encodeURIComponent(messagePreview);
-
     const smsUrl = `sms:${phone}?body=${encodedMessage}`;
 
     try {
@@ -117,7 +144,7 @@ export default function HomeScreen() {
       }
 
       await Linking.openURL(smsUrl);
-    } catch (error) {
+    } catch {
       Alert.alert(
         'Something Went Wrong',
         'The text messaging app could not be opened.'
@@ -129,22 +156,47 @@ export default function HomeScreen() {
     const rows = stationRows.filter((row) => row.belt === beltNumber);
 
     return (
-      <View style={styles.section}>
+      <View style={styles.beltSection}>
         <Text style={styles.beltTitle}>T-Belt {beltNumber}</Text>
 
-        {rows.map((row) => {
+        {rows.map((row, index) => {
           const isSelected = partialStart === row.key;
+          const isShaded = index % 2 === 1;
+
+          const globalIndex = stationRows.findIndex(
+            (stationRow) => stationRow.key === row.key
+          );
+
+          const isLastInput = globalIndex === stationRows.length - 1;
 
           return (
-            <View key={row.key} style={styles.row}>
-              <Text style={styles.stationLabel}>Stn {row.station}</Text>
+            <View
+              key={row.key}
+              style={[
+                styles.row,
+                isShaded && styles.rowShaded,
+              ]}
+            >
+              <Text style={styles.stationLabel}>
+                Stn{row.station}:
+              </Text>
 
               <TextInput
+                ref={(ref) => {
+                  inputRefs.current[row.key] = ref;
+                }}
                 value={values[row.key]}
                 onChangeText={(text) => updateValue(row.key, text)}
                 placeholder="Value"
                 keyboardType="numeric"
-                style={styles.input}
+                returnKeyType={isLastInput ? 'done' : 'next'}
+                blurOnSubmit={isLastInput}
+                onSubmitEditing={() => {
+                  if (!isLastInput) {
+                    focusNextInput(row.key);
+                  }
+                }}
+                style={styles.stationInput}
               />
 
               <TouchableOpacity
@@ -160,7 +212,7 @@ export default function HomeScreen() {
                     isSelected && styles.partialButtonTextSelected,
                   ]}
                 >
-                  Partial/Start
+                  Partial
                 </Text>
               </TouchableOpacity>
             </View>
@@ -171,121 +223,239 @@ export default function HomeScreen() {
   }
 
   return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.container}
-      keyboardShouldPersistTaps="handled"
-    >
-      <Text style={styles.title}>T-Belt Entry</Text>
+    <View style={styles.screen}>
+      <View style={styles.header}>
+        <Text style={styles.title}>T-Belt Entry</Text>
 
-      <Text style={styles.subtitle}>
-        Enter the station values and select one Partial/Start line.
-      </Text>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity
+            style={[
+              styles.smallHeaderButton,
+              recipientOpen && styles.smallHeaderButtonActive,
+            ]}
+            onPress={() =>
+              setRecipientOpen((current) => !current)
+            }
+          >
+            <Text style={styles.smallHeaderButtonText}>
+              Recipient
+            </Text>
+          </TouchableOpacity>
 
-      <View style={styles.section}>
-        <Text style={styles.beltTitle}>Recipient</Text>
-
-        <TextInput
-          value={phoneNumber}
-          onChangeText={setPhoneNumber}
-          placeholder="Phone number"
-          keyboardType="phone-pad"
-          style={styles.input}
-        />
+          <TouchableOpacity
+            style={[
+              styles.smallHeaderButton,
+              previewOpen && styles.smallHeaderButtonActive,
+            ]}
+            onPress={() =>
+              setPreviewOpen((current) => !current)
+            }
+          >
+            <Text style={styles.smallHeaderButtonText}>
+              Preview
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {renderBelt(1)}
+      {recipientOpen && (
+        <View style={styles.inlinePanel}>
+          <TextInput
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            placeholder="Recipient phone number"
+            keyboardType="phone-pad"
+            style={styles.phoneInput}
+          />
 
-      {renderBelt(2)}
+          <TouchableOpacity
+            style={styles.closePanelButton}
+            onPress={() => setRecipientOpen(false)}
+          >
+            <Text style={styles.closePanelButtonText}>
+              Done
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
-      <View style={styles.previewCard}>
-        <Text style={styles.previewTitle}>Message Preview</Text>
+      {previewOpen && (
+        <View style={styles.previewPanel}>
+          <Text style={styles.previewText}>
+            {messagePreview}
+          </Text>
+        </View>
+      )}
 
-        <Text style={styles.previewText}>{messagePreview}</Text>
+      <View style={styles.beltsContainer}>
+        {renderBelt(1)}
+        {renderBelt(2)}
       </View>
 
       <TouchableOpacity
         style={styles.sendButton}
         onPress={sendText}
       >
-        <Text style={styles.sendButtonText}>Send Text</Text>
+        <Text style={styles.sendButtonText}>
+          Send Text
+        </Text>
       </TouchableOpacity>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f3f4f6',
+    paddingHorizontal: 10,
+    paddingTop: 42,
+    paddingBottom: 8,
   },
 
-  container: {
-    padding: 20,
-    paddingTop: 60,
-    paddingBottom: 50,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
   },
 
   title: {
-    fontSize: 30,
+    fontSize: 22,
     fontWeight: '700',
-    marginBottom: 6,
     color: '#111',
   },
 
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 24,
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 6,
   },
 
-  section: {
+  smallHeaderButton: {
+    borderWidth: 1,
+    borderColor: '#c8ccd1',
+    borderRadius: 8,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
     backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 18,
+  },
+
+  smallHeaderButtonActive: {
+    backgroundColor: '#e5e7eb',
+  },
+
+  smallHeaderButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#222',
+  },
+
+  inlinePanel: {
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 8,
+    marginBottom: 6,
+  },
+
+  phoneInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#c9cdd2',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    fontSize: 15,
+    backgroundColor: '#fff',
+  },
+
+  closePanelButton: {
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: '#e5e7eb',
+  },
+
+  closePanelButtonText: {
+    fontWeight: '700',
+    fontSize: 13,
+  },
+
+  previewPanel: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 8,
+    marginBottom: 6,
+  },
+
+  previewText: {
+    fontSize: 12,
+    lineHeight: 16,
+    color: '#222',
+  },
+
+  beltsContainer: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    gap: 6,
+  },
+
+  beltSection: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 7,
   },
 
   beltTitle: {
-    fontSize: 22,
+    fontSize: 17,
     fontWeight: '700',
-    marginBottom: 12,
+    marginBottom: 3,
+    paddingHorizontal: 3,
     color: '#111',
   },
 
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
-    gap: 8,
+    minHeight: 41,
+    paddingVertical: 3,
+    paddingHorizontal: 5,
+    borderRadius: 6,
+    gap: 6,
+  },
+
+  rowShaded: {
+    backgroundColor: '#e9edf1',
   },
 
   stationLabel: {
-    width: 52,
-    fontSize: 16,
+    width: 46,
+    fontSize: 14,
     fontWeight: '600',
     color: '#222',
   },
 
-  input: {
+  stationInput: {
     flex: 1,
-    minWidth: 80,
+    minWidth: 60,
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderColor: '#c9cdd2',
+    borderRadius: 7,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
     fontSize: 16,
     backgroundColor: '#fff',
   },
 
   partialButton: {
+    width: 64,
     borderWidth: 1,
-    borderColor: '#bbb',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 11,
-    backgroundColor: '#f7f7f7',
+    borderColor: '#b7bcc2',
+    borderRadius: 7,
+    paddingVertical: 7,
+    alignItems: 'center',
+    backgroundColor: '#fff',
   },
 
   partialButtonSelected: {
@@ -294,8 +464,8 @@ const styles = StyleSheet.create({
   },
 
   partialButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 10,
+    fontWeight: '700',
     color: '#333',
   },
 
@@ -303,37 +473,17 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 
-  previewCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    marginTop: 4,
-    marginBottom: 18,
-  },
-
-  previewTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 10,
-    color: '#111',
-  },
-
-  previewText: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: '#222',
-  },
-
   sendButton: {
     backgroundColor: '#111',
-    paddingVertical: 16,
-    borderRadius: 14,
+    paddingVertical: 11,
+    borderRadius: 11,
     alignItems: 'center',
+    marginTop: 6,
   },
 
   sendButtonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
   },
 });
