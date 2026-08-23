@@ -116,6 +116,39 @@ export default function HomeScreen() {
     ].join('\n');
   }, [values, partialStart]);
 
+  function clearEntry() {
+    Alert.alert(
+      'Clear Entry?',
+      'This will clear all station values and the Partial/Start selection. The recipient will stay saved.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Clear',
+          style: 'destructive',
+          onPress: () => {
+            setValues({
+              b1s5: '',
+              b1s4: '',
+              b1s3: '',
+              b1s2: '',
+              b1s1: '',
+              b2s5: '',
+              b2s4: '',
+              b2s3: '',
+              b2s2: '',
+              b2s1: '',
+            });
+
+            setPartialStart(null);
+          },
+        },
+      ]
+    );
+  }
+
   async function sendText() {
     const phone = phoneNumber.trim();
 
@@ -292,14 +325,25 @@ export default function HomeScreen() {
         {renderBelt(2)}
       </View>
 
-      <TouchableOpacity
-        style={styles.sendButton}
-        onPress={sendText}
-      >
-        <Text style={styles.sendButtonText}>
-          Send Text
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.bottomButtons}>
+        <TouchableOpacity
+          style={styles.clearButton}
+          onPress={clearEntry}
+        >
+          <Text style={styles.clearButtonText}>
+            Clear
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.sendButton}
+          onPress={sendText}
+        >
+          <Text style={styles.sendButtonText}>
+            Send Text
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -473,12 +517,32 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 
+  bottomButtons: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 6,
+  },
+
+  clearButton: {
+    flex: 1,
+    backgroundColor: '#e5e7eb',
+    paddingVertical: 11,
+    borderRadius: 11,
+    alignItems: 'center',
+  },
+
+  clearButtonText: {
+    color: '#222',
+    fontSize: 17,
+    fontWeight: '700',
+  },
+
   sendButton: {
+    flex: 2,
     backgroundColor: '#111',
     paddingVertical: 11,
     borderRadius: 11,
     alignItems: 'center',
-    marginTop: 6,
   },
 
   sendButtonText: {
