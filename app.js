@@ -1,5 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
-import { getAuth, signInWithCustomToken, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
+import { getAuth, onAuthStateChanged, signInWithCustomToken, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
 import { addDoc, collection, doc, getDoc, getDocs, getFirestore, updateDoc } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
 import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-functions.js';
 
@@ -220,8 +220,61 @@ async function hydrateAdmin() {
   state.sites = sites.docs.map(record => ({ id: record.id, ...record.data() }));
 }
 
+async function restoreLiveSession(user) {
+  if (!user) {
+    if (state.signedIn) {
+      state.signedIn = false;
+      state.siteId = '';
+      state.siteName = '';
+      state.userName = '';
+      state.isAdmin = false;
+      state.authMode = 'site';
+      save();
+      render();
+    }
+    return;
+  }
+
+  try {
+    const token = await user.getIdTokenResult();
+    const claimedSiteId = token.claims.siteId;
+    if (token.claims.role === 'field' && typeof claimedSiteId === 'string') {
+      const site = await getDoc(doc(database, 'sites', claimedSiteId));
+      if (!site.exists() || site.data().active !== true) throw new Error('This location is no longer active.');
+      state.siteId = claimedSiteId;
+      state.siteName = site.data().name;
+      state.userName = state.userName || 'Field operator';
+      state.isAdmin = false;
+      state.signedIn = true;
+      await hydrateSite();
+    } else {
+      const admin = await getDoc(doc(database, 'admins', user.uid));
+      if (!admin.exists() || admin.data().active !== true) throw new Error('This account is not authorized as a FieldOps administrator.');
+      state.siteId = '';
+      state.siteName = 'System Admin';
+      state.userName = user.email || 'Administrator';
+      state.isAdmin = true;
+      state.signedIn = true;
+      await hydrateAdmin();
+    }
+    save();
+    render();
+  } catch (error) {
+    await signOut(auth);
+    state.signedIn = false;
+    state.siteId = '';
+    state.siteName = '';
+    state.userName = '';
+    state.isAdmin = false;
+    state.authMode = 'site';
+    save();
+    render();
+  }
+}
+
 function toast(message) { const node = document.createElement('div'); node.className = 'toast'; node.textContent = message; document.body.append(node); setTimeout(() => node.remove(), 2800); }
 function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char])); }
+if (liveMode) onAuthStateChanged(auth, restoreLiveSession);
 render();
 
 if ('serviceWorker' in navigator) {
