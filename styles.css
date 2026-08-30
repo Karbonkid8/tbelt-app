@@ -81,6 +81,15 @@ th { padding:12px 19px; color:#7c7b7a; background:#f4f4f4; font-size:11px; lette
 .history h3 { margin:0 0 9px; font-size:13px; }
 .history-item { display:flex; justify-content:space-between; padding:8px 0; border-top:1px solid #edf1f4; color:#617185; font-size:12px; }
 .history-item b { color:#1c2d42; }
+.history-chart { margin:20px 0 0; padding:13px 12px 9px; border:1px solid #e2e5e7; border-radius:10px; background:#fbfbfb; }
+.history-chart svg { display:block; width:100%; overflow:visible; }
+.chart-grid { stroke:#d9dcde; stroke-width:1; stroke-dasharray:3 4; }
+.chart-line { fill:none; stroke:#ee2827; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+.chart-point { fill:#fff; stroke:#a91e22; stroke-width:3; }
+.chart-axis { fill:#7c7b7a; font-size:11px; font-family:Inter, ui-sans-serif, system-ui, sans-serif; }
+.chart-key { display:flex; justify-content:space-between; gap:10px; color:#7c7b7a; font-size:11px; }
+.chart-key span { display:flex; align-items:center; gap:6px; }.chart-key i { display:inline-block; width:14px; height:3px; border-radius:99px; background:#ee2827; }.chart-key strong { color:#262626; }
+.history-empty { padding:28px 12px; }
 .toast { position:fixed; right:20px; bottom:20px; z-index:15; border-radius:9px; padding:12px 15px; background:#153c35; color:#fff; box-shadow:0 8px 22px #0615244a; font-size:13px; }
 .requisition-layout { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(300px,.9fr); gap:20px; align-items:start; }
 .form-panel { padding-bottom:4px; }
