@@ -2,7 +2,7 @@
 
 FieldOps is a web-based worksite operations app for chemical container tracking, T-Belt RunDown reporting, requisitions, and location administration.
 
-**Current production release:** `v0.1.0`
+**Current production release:** `v0.1.1`
 
 **Production URL:** <https://ops.fracplotter.com>
 

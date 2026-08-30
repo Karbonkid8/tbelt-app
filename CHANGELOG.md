@@ -2,6 +2,12 @@
 
 All notable user-facing changes to FieldOps are recorded here.
 
+## [0.1.1] - 2026-08-30
+
+### Fixed
+
+- All three primary work tabs remain visible and tappable on mobile screens.
+
 ## [0.1.0] - 2026-08-30
 
 ### Added

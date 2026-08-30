@@ -4,7 +4,7 @@ import { addDoc, collection, doc, getDoc, getDocs, getFirestore, updateDoc } fro
 import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-functions.js';
 
 const storageKey = 'fieldops-demo-v1';
-const APP_VERSION = 'v0.1.0';
+const APP_VERSION = 'v0.1.1';
 const firebaseConfig = window.FIELDOPS_FIREBASE_CONFIG;
 const liveMode = Boolean(firebaseConfig?.projectId);
 let auth;
