@@ -141,3 +141,28 @@ exports.updateSite = onCall(
     return { siteId };
   },
 );
+
+exports.deleteSite = onCall(
+  { region: 'us-west3' },
+  async (request) => {
+    await requireAdmin(request);
+    const siteId = String(request.data?.siteId || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '-');
+    if (!/^[a-z0-9][a-z0-9-]{1,62}$/.test(siteId)) {
+      throw new HttpsError('invalid-argument', 'Enter a valid location ID.');
+    }
+
+    const database = getFirestore();
+    const site = database.collection('sites').doc(siteId);
+    if (!(await site.get()).exists) {
+      throw new HttpsError('not-found', 'This location no longer exists.');
+    }
+
+    // Deleting a Firestore document alone leaves its subcollections behind.
+    // recursiveDelete removes containers, requisitions, and access records too.
+    await database.recursiveDelete(site);
+    return { siteId };
+  },
+);

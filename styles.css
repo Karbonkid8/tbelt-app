@@ -74,6 +74,9 @@ th { padding:12px 19px; color:#7c7b7a; background:#f4f4f4; font-size:11px; lette
 .modal-backdrop { position:fixed; inset:0; z-index:8; display:grid; place-items:center; padding:20px; background:#071b2e88; }
 .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:23px; }
 .secondary { border:1px solid #ccd7e1; border-radius:8px; padding:10px 13px; background:#fff; color:#536276; font-size:13px; font-weight:750; }
+.danger { border:0; border-radius:8px; padding:11px 15px; background:#a91e22; color:#fff; font-size:14px; font-weight:750; }
+.danger:hover { background:#721319; }
+.danger-link { margin-left:10px; color:#a91e22; }
 .history { margin-top:15px; padding-top:14px; border-top:1px solid #e5ebf0; }
 .history h3 { margin:0 0 9px; font-size:13px; }
 .history-item { display:flex; justify-content:space-between; padding:8px 0; border-top:1px solid #edf1f4; color:#617185; font-size:12px; }
