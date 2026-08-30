@@ -1,0 +1,19 @@
+{
+  "name": "FieldOps",
+  "short_name": "FieldOps",
+  "description": "Worksite operations for chemical tracking, requisitions, and T-Belt RunDown.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#E7E7E7",
+  "theme_color": "#262626",
+  "icons": [
+    {
+      "src": "icons/fieldops.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
