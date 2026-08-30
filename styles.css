@@ -35,6 +35,30 @@ th { padding:12px 19px; color:#7c7b7a; background:#f4f4f4; font-size:11px; lette
 .rundown > div { max-width:460px; }
 .rundown h2 { margin:0; font-size:24px; letter-spacing:-.04em; }
 .rundown p { color:#69798c; line-height:1.55; }
+.tbelt { max-width:1000px; margin:0 auto; }
+.tbelt-head { display:flex; align-items:end; justify-content:space-between; gap:20px; margin-bottom:22px; }
+.tbelt-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.tbelt-panel { margin-bottom:15px; padding:16px 19px; border:1px solid #d4d4d4; border-radius:12px; background:#fff; box-shadow:0 3px 12px #26262610; }
+.tbelt-panel pre { margin:10px 0 0; white-space:pre-wrap; color:#262626; font:600 14px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.phone-row { display:flex; align-items:center; gap:9px; }
+.phone-row input { min-width:0; flex:1; }
+.belt-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.belt-card { overflow:hidden; border:1px solid #d4d4d4; border-radius:12px; background:#fff; box-shadow:0 3px 12px #26262610; }
+.belt-card header { display:flex; align-items:center; gap:10px; padding:16px; background:#262626; color:#fff; }
+.belt-card header h2 { margin:0; font-size:16px; letter-spacing:.03em; }
+.belt-card header > span:last-child { margin-left:auto; color:#e7e7e7; font-size:10px; font-weight:800; letter-spacing:.1em; }
+.belt-badge { display:grid; width:28px; height:28px; place-items:center; border-radius:6px; background:#ee2827; font-size:13px; font-weight:900; }
+.station-row { display:grid; grid-template-columns:62px minmax(0,1fr) 83px; align-items:center; gap:9px; padding:9px 13px; border-top:1px solid #e7e7e7; }
+.station-row.alternate { background:#fafafa; }
+.station-row label { color:#262626; font-size:13px; font-weight:800; }
+.station-row input { min-width:0; border:1px solid #cfd9e3; border-radius:7px; padding:9px; color:#262626; outline:none; }
+.station-row input:focus { border-color:#ee2827; box-shadow:0 0 0 3px #ee28271e; }
+.start-marker { border:1px solid #d7d7d7; border-radius:7px; padding:8px 6px; background:#fff; color:#7c7b7a; font-size:11px; font-weight:750; }
+.start-marker.selected { border-color:#ee2827; background:#ee2827; color:#fff; }
+.tbelt-footer { display:flex; justify-content:space-between; gap:12px; margin-top:18px; }
+.tbelt.compact .belt-card header { padding:8px 10px; }
+.tbelt.compact .station-row { padding:4px 8px; }
+.tbelt.compact .station-row input { padding:5px 7px; }
 .overlay { position:fixed; inset:0; z-index:10; display:grid; place-items:center; padding:20px; background:#0b2239aa; backdrop-filter:blur(4px); }
 .gate, .modal { width:min(100%,450px); border-radius:16px; background:#fff; box-shadow:0 24px 72px #06152470; }
 .gate { padding:30px; }
@@ -76,4 +100,4 @@ th { padding:12px 19px; color:#7c7b7a; background:#f4f4f4; font-size:11px; lette
 .requisition-meta small { display:block; margin-top:5px; }
 .priority { display:inline-block; border-radius:999px; padding:4px 7px; background:#eef2f5; color:#617185; font-size:10px; font-weight:800; text-transform:uppercase; }
 .priority.high { background:#fff1dc; color:#965813; }.priority.urgent { background:#fde7e7; color:#a33131; }
-@media (max-width:720px) { .topbar { gap:18px; }.brand small,.tabs button:not(.active),.site-chip { display:none; }.tabs { margin-left:auto; }.heading { align-items:start; flex-direction:column; }.metrics,.requisition-layout,.form-grid { grid-template-columns:1fr; }.panel { overflow:auto; } table { min-width:670px; }.order-line { grid-template-columns:1fr 90px 1fr 26px; }.form-footer { align-items:start; gap:12px; flex-direction:column; } }
+@media (max-width:720px) { .topbar { gap:18px; }.brand small,.tabs button:not(.active),.site-chip { display:none; }.tabs { margin-left:auto; }.heading,.tbelt-head { align-items:start; flex-direction:column; }.metrics,.requisition-layout,.form-grid,.belt-grid { grid-template-columns:1fr; }.panel { overflow:auto; } table { min-width:670px; }.order-line { grid-template-columns:1fr 90px 1fr 26px; }.form-footer { align-items:start; gap:12px; flex-direction:column; }.tbelt-footer { align-items:stretch; flex-direction:column-reverse; }.tbelt-footer button { width:100%; }.phone-row { align-items:stretch; flex-direction:column; } }
