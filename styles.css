@@ -78,6 +78,7 @@ th { padding:12px 19px; color:#7c7b7a; background:#f4f4f4; font-size:11px; lette
 .optional { color:#7c7b7a; font-size:11px; font-weight:600; text-transform:none; }
 .gate .primary { width:100%; margin-top:20px; }
 .gate-note { margin-top:13px; color:#7c8a9a; font-size:11px; text-align:center; }
+.app-version { margin-top:12px; color:#7c7b7a; font-size:11px; font-weight:750; letter-spacing:.04em; text-align:center; text-transform:uppercase; }
 .modal { max-height:calc(100dvh - 40px); overflow:auto; padding:25px; }
 .modal-backdrop { position:fixed; inset:0; z-index:8; display:grid; place-items:center; padding:20px; background:#071b2e88; }
 .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:23px; }

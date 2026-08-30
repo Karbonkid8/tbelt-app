@@ -1,45 +1,83 @@
 # FieldOps
 
-## Firebase deployment
+FieldOps is a web-based worksite operations app for chemical container tracking, T-Belt RunDown reporting, requisitions, and location administration.
 
-The Firebase project is `fieldops-260e1`, with Firestore in `us-west3`.
+**Current production release:** `v0.1.0`
 
-The shared Site Code is never stored in the browser or Firestore in plain text. The
-`joinSite` function validates a HMAC hash using the `SITE_CODE_PEPPER` secret and
-returns a short-lived field-user session scoped to one site. Deploy with:
+**Production URL:** <https://ops.fracplotter.com>
 
-```sh
-firebase login --reauth
-cd functions && npm install && cd ..
-firebase functions:secrets:set SITE_CODE_PEPPER
-firebase deploy --only functions,firestore:rules
-```
+**Firebase project:** `fieldops-260e1` (Firestore region: `us-west3`)
 
-To create a site, run `node scripts/hash-site-code.mjs`, then create a
-`sites/anthem` document in Firestore with `name`, `active: true`, and the
-resulting `accessCodeHash`. Do not enter a raw Site Code in Firestore.
+## What is included
 
-FieldOps is a worksite operations app. This first build includes Chemicals (Frac/Pump Down views, ISO and Poly 330 containers, strap updates, and local strap history) and Requisitions (supply ordering forms with line items and local submission history).
+- Site Code entry scoped to one work location
+- Administrator sign-in and location management
+- Frac and Pump Down chemical inventories
+- ISO and Poly 330 container tracking
+- Strap readings, optional field notes, history, and trend plots
+- T-Belt RunDown with SMS report handoff
+- Requisition form foundation
+- Installable PWA behavior
 
-## Run locally
+## Local development
 
-Open `index.html` in a browser, or use a static-file server from this directory:
+Use a static-file server from the repository root:
 
 ```sh
 python3 -m http.server 4173
 ```
 
-Then visit `http://localhost:4173`.
+Then open <http://localhost:4173>. The local app uses the committed public Firebase web configuration when available.
 
-## Current data behavior
+## Firebase deployment
 
-Until Firebase is connected, the app stores demo data and changes in this browser's local storage. Use any Site Code in the entry screen.
+Deploy the web app:
 
-## Firebase connection plan
+```sh
+firebase deploy --only hosting --project fieldops-260e1
+```
 
-1. Copy `firebase-config.example.js` to `firebase-config.js` and add the existing Firebase Web app configuration.
-2. Add a server-side Site Code validation endpoint that exchanges a valid code for a Firebase custom token containing a `siteId` claim.
-3. Store Firestore data below `sites/{siteId}` and enforce the `siteId` claim in Firestore Security Rules.
-4. Replace the local-storage adapter in `app.js` with Firestore reads/writes and enable offline persistence.
+Deploy Functions and Firestore rules when either changes:
 
-Never place Site Code hashes, Firebase service-account JSON, or admin credentials in browser code.
+```sh
+firebase deploy --only functions,firestore:rules --project fieldops-260e1
+```
+
+The `SITE_CODE_PEPPER` secret must remain configured in Firebase. Never commit raw Site Codes, service-account keys, or administrator credentials.
+
+## Preview before production
+
+Use a Firebase Hosting preview channel for feature review:
+
+```sh
+firebase hosting:channel:deploy feature-name --expires 7d --project fieldops-260e1
+```
+
+Preview channels use the real project backend, so do not enter production test data unless it is acceptable for the live project.
+
+## Git and release workflow
+
+`main` is the production branch. Create new work on a short-lived branch such as `feature/chemical-undo` or `fix/mobile-layout`.
+
+1. Build and test locally.
+2. Deploy a preview channel for review.
+3. Merge the verified work into `main`.
+4. Update the version and `CHANGELOG.md`.
+5. Create a Git tag such as `v0.2.0`.
+6. Deploy the tagged release to Hosting.
+
+Use semantic versions:
+
+- `v0.MINOR.PATCH` while FieldOps is in beta
+- Increase `MINOR` for a new operator-facing feature
+- Increase `PATCH` for a correction or small polish change
+- `v1.0.0` marks the first stable field-ready release
+
+See [CHANGELOG.md](CHANGELOG.md) for release notes and [docs/DATA_MODEL.md](docs/DATA_MODEL.md) for the Firestore structure.
+
+## Security boundaries
+
+- Raw Site Codes are validated only by the `joinSite` Cloud Function and are never stored in Firestore or browser code.
+- Field users receive a custom Firebase token scoped to exactly one site.
+- Admin controls call privileged Cloud Functions and require an active admin document.
+- Location removal is permanent and recursively deletes its subcollections after typed-ID confirmation.
