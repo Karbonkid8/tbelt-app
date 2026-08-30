@@ -1,4 +1,4 @@
-const CACHE = 'fieldops-shell-v1';
+const CACHE = 'fieldops-shell-v2';
 const APP_SHELL = ['/', '/index.html', '/styles.css', '/app.js', '/firebase-config.js', '/manifest.webmanifest', '/icons/fieldops.svg'];
 
 self.addEventListener('install', event => {
@@ -13,5 +13,22 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
-  event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request)));
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
+
+  event.respondWith(
+    fetch(event.request)
+      .then(response => {
+        if (response.ok) {
+          caches.open(CACHE).then(cache => cache.put(event.request, response.clone()));
+        }
+        return response;
+      })
+      .catch(async () => {
+        const cached = await caches.match(event.request);
+        if (cached) return cached;
+        if (event.request.mode === 'navigate') return caches.match('/index.html');
+        return Response.error();
+      }),
+  );
 });

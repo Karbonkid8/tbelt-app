@@ -1,5 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
-import { getAuth, onAuthStateChanged, signInWithCustomToken, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
+import { browserLocalPersistence, getAuth, onAuthStateChanged, setPersistence, signInWithCustomToken, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
 import { addDoc, collection, doc, getDoc, getDocs, getFirestore, updateDoc } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
 import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-functions.js';
 
@@ -274,7 +274,11 @@ async function restoreLiveSession(user) {
 
 function toast(message) { const node = document.createElement('div'); node.className = 'toast'; node.textContent = message; document.body.append(node); setTimeout(() => node.remove(), 2800); }
 function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char])); }
-if (liveMode) onAuthStateChanged(auth, restoreLiveSession);
+if (liveMode) {
+  setPersistence(auth, browserLocalPersistence)
+    .catch(() => {})
+    .finally(() => onAuthStateChanged(auth, restoreLiveSession));
+}
 render();
 
 if ('serviceWorker' in navigator) {
