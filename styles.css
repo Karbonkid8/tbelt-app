@@ -27,6 +27,12 @@ table { width:100%; border-collapse:collapse; text-align:left; }
 th { padding:12px 19px; color:#7c7b7a; background:#f4f4f4; font-size:11px; letter-spacing:.07em; text-transform:uppercase; }td { padding:13px 19px; border-top:1px solid #e7e7e7; font-size:13px; }
 .container-cell { display:flex; align-items:center; gap:11px; min-width:170px; }
 .container-cell b { font-size:14px; }
+.container-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.action-button { min-height:34px; border:1px solid transparent; border-radius:7px; padding:7px 10px; font-size:12px; font-weight:800; }
+.action-history { border-color:#262626; background:#262626; color:#fff; }
+.action-update { border-color:#ee2827; background:#ee2827; color:#fff; }
+.action-edit { border-color:#c6c6c6; background:#fff; color:#535353; }
+.action-history:hover { background:#454545; }.action-update:hover { background:#a91e22; border-color:#a91e22; }.action-edit:hover { border-color:#7c7b7a; color:#262626; }
 .tank-icon, .tank-icon svg { display:block; width:58px; height:41px; flex:none; }
 .badge { display:inline-block; border-radius:999px; padding:4px 8px; background:#fbe4e4; color:#a91e22; font-size:11px; font-weight:800; }.badge.poly { background:#e7e7e7; color:#5d5d5d; }.badge.alert-current { background:#e7e7e7; color:#5d5d5d; }.badge.alert-missing { background:#ee2827; color:#fff; }.badge.alert-review { background:#262626; color:#fff; }
 .strap { font-size:15px; font-weight:800; }
@@ -70,7 +76,7 @@ th { padding:12px 19px; color:#7c7b7a; background:#f4f4f4; font-size:11px; lette
 .field input:focus, .field select:focus { border-color:#ee2827; box-shadow:0 0 0 3px #ee28271e; }
 .gate .primary { width:100%; margin-top:20px; }
 .gate-note { margin-top:13px; color:#7c8a9a; font-size:11px; text-align:center; }
-.modal { padding:25px; }
+.modal { max-height:calc(100dvh - 40px); overflow:auto; padding:25px; }
 .modal-backdrop { position:fixed; inset:0; z-index:8; display:grid; place-items:center; padding:20px; background:#071b2e88; }
 .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:23px; }
 .secondary { border:1px solid #ccd7e1; border-radius:8px; padding:10px 13px; background:#fff; color:#536276; font-size:13px; font-weight:750; }
@@ -112,4 +118,4 @@ th { padding:12px 19px; color:#7c7b7a; background:#f4f4f4; font-size:11px; lette
 .requisition-meta small { display:block; margin-top:5px; }
 .priority { display:inline-block; border-radius:999px; padding:4px 7px; background:#eef2f5; color:#617185; font-size:10px; font-weight:800; text-transform:uppercase; }
 .priority.high { background:#fff1dc; color:#965813; }.priority.urgent { background:#fde7e7; color:#a33131; }
-@media (max-width:720px) { .topbar { gap:18px; }.brand small,.tabs button:not(.active),.site-chip { display:none; }.tabs { margin-left:auto; }.heading,.tbelt-head { align-items:start; flex-direction:column; }.metrics,.requisition-layout,.form-grid,.belt-grid { grid-template-columns:1fr; }.panel { overflow:auto; } table { min-width:670px; }.order-line { grid-template-columns:1fr 90px 1fr 26px; }.form-footer { align-items:start; gap:12px; flex-direction:column; }.tbelt-footer { align-items:stretch; flex-direction:column-reverse; }.tbelt-footer button { width:100%; }.phone-row { align-items:stretch; flex-direction:column; } }
+@media (max-width:720px) { .topbar { gap:18px; }.brand small,.tabs button:not(.active),.site-chip { display:none; }.tabs { margin-left:auto; }.heading,.tbelt-head { align-items:start; flex-direction:column; }.metrics,.requisition-layout,.form-grid,.belt-grid { grid-template-columns:1fr; }.panel { overflow:auto; } table { min-width:670px; }.order-line { grid-template-columns:1fr 90px 1fr 26px; }.form-footer { align-items:start; gap:12px; flex-direction:column; }.tbelt-footer { align-items:stretch; flex-direction:column-reverse; }.tbelt-footer button { width:100%; }.phone-row { align-items:stretch; flex-direction:column; }.chemical-inventory { overflow:hidden; }.chemical-inventory table,.chemical-inventory tbody,.chemical-inventory tr,.chemical-inventory td { display:block; width:100%; min-width:0; }.chemical-inventory thead { display:none; }.chemical-inventory tbody tr { padding:13px 15px; border-top:1px solid #e7e7e7; }.chemical-inventory td { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:8px 0; border:0; text-align:right; }.chemical-inventory td::before { content:attr(data-label); flex:none; color:#7c7b7a; font-size:11px; font-weight:800; letter-spacing:.07em; text-align:left; text-transform:uppercase; }.chemical-inventory .container-column { justify-content:flex-start; padding:0 0 10px; }.chemical-inventory .container-column::before { display:none; }.chemical-inventory .container-cell { min-width:0; }.chemical-inventory .container-actions { justify-content:flex-end; }.chemical-inventory td[data-label="Actions"] { align-items:flex-start; padding-top:12px; border-top:1px solid #ededed; }.chemical-inventory td[data-label="Actions"]::before { padding-top:8px; }.history-chart { margin-left:-4px; margin-right:-4px; } }
