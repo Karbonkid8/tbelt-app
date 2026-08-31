@@ -2,7 +2,7 @@
 
 All notable user-facing changes to FieldOps are recorded here.
 
-## [Unreleased]
+## [0.2.0] - 2026-08-31
 
 ### Added
 
