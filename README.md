@@ -15,6 +15,7 @@ FieldOps is a web-based worksite operations app for chemical container tracking,
 - Frac and Pump Down chemical inventories
 - ISO and Poly 330 container tracking
 - Strap readings, optional field notes, history, and trend plots
+- Toggleable Chemical Usage Calculator with shared BBL volume and per-container GPT targets
 - T-Belt RunDown with SMS report handoff
 - Requisition form foundation
 - Installable PWA behavior

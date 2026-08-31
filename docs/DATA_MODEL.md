@@ -6,6 +6,7 @@ All worksite records are stored under a location document in Firestore.
 admins/{adminUid}
 sites/{siteId}
   containers/{containerId}
+  pumpingPrograms/{areaId}
   requisitions/{requisitionId}
   accessLog/{entryId}
 ```
@@ -41,6 +42,20 @@ Deleting a site recursively deletes the container, requisition, and access-log s
 | `history` | Newest-first array of strap entries. |
 
 Each `history` entry contains `strap`, `at`, `atIso`, `by`, and optional `note`.
+
+Containers may also include `setPointGpt`, the active chemical dosage in gallons per thousand gallons. A blank value means that container is not included in the Chemical Usage Calculator.
+
+## `sites/{siteId}/pumpingPrograms/{areaId}`
+
+There is one active record for each area: `frac` or `pump-down`.
+
+| Field | Purpose |
+| --- | --- |
+| `area` | `Frac` or `Pump Down`. |
+| `pumpedBbl` | Shared, current total fluid volume pumped in barrels. |
+| `updatedAtIso`, `updatedBy` | Latest saved volume audit metadata. |
+
+Target gallons are calculated in the app from `pumpedBbl × 42 ÷ 1,000 × setPointGpt`.
 
 ## `sites/{siteId}/requisitions/{requisitionId}`
 
