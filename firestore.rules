@@ -36,6 +36,11 @@ service cloud.firestore {
         allow update, delete: if isAdmin();
       }
 
+      match /pumpingPrograms/{programId} {
+        allow read, create, update: if belongsToSite(siteId) || isAdmin();
+        allow delete: if isAdmin();
+      }
+
       match /accessLog/{entryId} {
         allow read: if isAdmin();
         allow write: if false;

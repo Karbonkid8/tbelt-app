@@ -1,6 +1,6 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js';
 import { browserLocalPersistence, getAuth, onAuthStateChanged, setPersistence, signInWithCustomToken, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js';
-import { addDoc, collection, doc, getDoc, getDocs, getFirestore, updateDoc } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
+import { addDoc, collection, doc, getDoc, getDocs, getFirestore, setDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
 import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-functions.js';
 
 const storageKey = 'fieldops-demo-v1';
@@ -34,6 +34,7 @@ const emptyStations = () => Object.fromEntries(stationRows.map(row => [row.key, 
 
 const seed = {
   siteId: '', siteName: '', userName: '', signedIn: false, isAdmin: false, authMode: 'site', area: 'Frac', tab: 'chemicals', requisitions: [], sites: [],
+  pumping: { view: false, programs: { Frac: { pumpedBbl: '' }, 'Pump Down': { pumpedBbl: '' } } },
   rundown: { values: emptyStations(), partialStart: '', phoneNumber: '', recipientOpen: true, previewOpen: false, compact: false },
   containers: [
     { id:'iso-014', name:'ISO #014', type:'ISO tank', area:'Frac', chemical:'Friction Reducer', strap:56, updatedAt:'Today, 9:42 AM', updatedAtIso:new Date().toISOString(), history:[{strap:56, by:'Demo operator', at:'Today, 9:42 AM'}] },
@@ -45,6 +46,7 @@ const seed = {
 
 const load = () => ({ ...seed, ...JSON.parse(localStorage.getItem(storageKey) || '{}') });
 let state = load();
+state.pumping = { ...seed.pumping, ...(state.pumping || {}), programs: { ...seed.pumping.programs, ...(state.pumping?.programs || {}) } };
 if (liveMode) {
   state.signedIn = false;
   state.siteId = '';
@@ -55,6 +57,10 @@ const app = document.querySelector('#app');
 function formatStrap(value) { return value === null || value === '' ? '—' : `${value} in`; }
 function typeIcon(type) { return type === 'ISO tank' ? isoIcon() : polyIcon(); }
 function areaContainers() { return state.containers.filter(container => container.area === state.area); }
+function pumpingProgramId(area = state.area) { return area === 'Pump Down' ? 'pump-down' : 'frac'; }
+function pumpingProgram() { return state.pumping.programs[state.area] || { pumpedBbl: '' }; }
+function targetGallons(pumpedBbl, setPointGpt) { const hasPumpedVolume = pumpedBbl !== '' && pumpedBbl !== null && pumpedBbl !== undefined; const hasSetPoint = setPointGpt !== '' && setPointGpt !== null && setPointGpt !== undefined; const bbl = Number(pumpedBbl); const gpt = Number(setPointGpt); if (!hasPumpedVolume || !hasSetPoint || !Number.isFinite(bbl) || !Number.isFinite(gpt) || bbl < 0 || gpt < 0) return '—'; const gallons = bbl * 42 / 1000 * gpt; return `${gallons.toLocaleString(undefined, { maximumFractionDigits: 1 })} gal`; }
+function updatePumpingTargets() { const program = pumpingProgram(); document.querySelectorAll('[data-target]').forEach(node => { const container = state.containers.find(item => item.id === node.dataset.target); node.textContent = targetGallons(program.pumpedBbl, container?.setPointGpt); }); }
 function render() {
   app.innerHTML = `${state.signedIn ? shell() : gate()}${state.signedIn ? content() : ''}`;
   bind();
@@ -80,7 +86,9 @@ function chemicals() {
   const polyCount = containers.length - isoCount;
   const missingCount = containers.filter(item => chemicalAlert(item).kind === 'missing').length;
   const reviewCount = containers.filter(item => chemicalAlert(item).kind === 'review').length;
-  return `<section><div class="heading"><div><div class="title-row"><h1>Chemicals</h1><div class="segment" aria-label="Chemical area"><button data-area="Frac" class="${state.area === 'Frac' ? 'active' : ''}">Frac</button><button data-area="Pump Down" class="${state.area === 'Pump Down' ? 'active' : ''}">Pump Down</button></div></div><p class="subhead">${state.area} chemical containers and latest strap measurements.</p></div><button class="primary" data-open="container">+ Add container</button></div><section class="metrics"><div class="metric"><small>Containers assigned to ${state.area}</small><strong>${containers.length}</strong></div><div class="metric"><small>ISO tanks</small><strong>${isoCount}</strong></div><div class="metric"><small>Strap needed</small><strong>${missingCount}</strong></div><div class="metric"><small>Review readings</small><strong>${reviewCount}</strong></div></section><section class="panel chemical-inventory"><div class="panel-heading"><strong>${state.area} container inventory</strong><span>Latest strap entries</span></div>${containers.length ? `<table><thead><tr><th>Container</th><th>Type</th><th>Chemical</th><th>Strap</th><th>Status</th><th>Last updated</th><th></th></tr></thead><tbody>${containers.map(row).join('')}</tbody></table>` : '<div class="empty">No containers have been added to this area.</div>'}</section></section>`;
+  const pumpingView = state.pumping.view;
+  const program = pumpingProgram();
+  return `<section><div class="heading"><div><div class="title-row"><h1>Chemicals</h1><div class="segment" aria-label="Chemical area"><button data-area="Frac" class="${state.area === 'Frac' ? 'active' : ''}">Frac</button><button data-area="Pump Down" class="${state.area === 'Pump Down' ? 'active' : ''}">Pump Down</button></div><button class="pumping-toggle ${pumpingView ? 'active' : ''}" data-toggle-pumping type="button">${pumpingView ? 'Pumping view on' : 'Pumping view'}</button></div><p class="subhead">${pumpingView ? `${state.area} chemical containers and expected usage.` : `${state.area} chemical containers and latest strap measurements.`}</p></div><button class="primary" data-open="container">+ Add container</button></div><section class="metrics"><div class="metric"><small>Containers assigned to ${state.area}</small><strong>${containers.length}</strong></div><div class="metric"><small>ISO tanks</small><strong>${isoCount}</strong></div><div class="metric"><small>Strap needed</small><strong>${missingCount}</strong></div><div class="metric"><small>Review readings</small><strong>${reviewCount}</strong></div></section><section class="panel chemical-inventory ${pumpingView ? 'pumping-active' : ''}"><div class="panel-heading"><strong>${state.area} container inventory</strong>${pumpingView ? `<label class="pumped-volume">Pumped volume <span><input data-pumped-bbl type="number" min="0" step="1" value="${escapeHtml(program.pumpedBbl ?? '')}" placeholder="0" /> BBL</span></label>` : '<span>Latest strap entries</span>'}</div>${containers.length ? `<table><thead><tr><th>Container</th><th>Type</th><th>Chemical</th><th>Strap</th><th>Status</th><th>Last updated</th>${pumpingView ? '<th>Set point</th><th>Target volume</th>' : ''}<th></th></tr></thead><tbody>${containers.map(row).join('')}</tbody></table>` : '<div class="empty">No containers have been added to this area.</div>'}</section></section>`;
 }
 
 function requisitions() {
@@ -90,7 +98,7 @@ function requisitions() {
 
 function requisitionRow(record) { return `<article class="requisition-record"><div><strong>${escapeHtml(record.items[0]?.item || 'Requisition')}</strong><span>${record.items.length} item${record.items.length === 1 ? '' : 's'} · ${escapeHtml(record.requestedBy)}</span></div><div class="requisition-meta"><small>${new Date(record.createdAt).toLocaleDateString()}</small></div></article>`; }
 
-function row(container) { const alert = chemicalAlert(container); return `<tr><td data-label="Container" class="container-column"><div class="container-cell">${typeIcon(container.type)}<b>${escapeHtml(container.name)}</b></div></td><td data-label="Type"><span class="badge ${container.type === 'ISO tank' ? '' : 'poly'}">${container.type}</span></td><td data-label="Chemical">${escapeHtml(container.chemical)}</td><td data-label="Strap" class="strap">${formatStrap(container.strap)}</td><td data-label="Status"><span class="badge alert-${alert.kind}">${alert.label}</span></td><td data-label="Last updated" class="muted">${container.updatedAt}</td><td data-label="Actions"><div class="container-actions"><button class="action-button action-history" data-history="${container.id}">History</button><button class="action-button action-update" data-update="${container.id}">${container.strap === null ? 'Enter strap' : 'Update'}</button><button class="action-button action-edit" data-edit="${container.id}">Edit</button></div></td></tr>`; }
+function row(container) { const alert = chemicalAlert(container); const pumpingColumns = state.pumping.view ? `<td data-label="Set point"><label class="set-point"><input data-setpoint="${container.id}" type="number" min="0" step="0.01" value="${escapeHtml(container.setPointGpt ?? '')}" placeholder="—" /> <span>GPT</span></label></td><td data-label="Target volume" class="target-volume" data-target="${container.id}">${targetGallons(pumpingProgram().pumpedBbl, container.setPointGpt)}</td>` : ''; return `<tr><td data-label="Container" class="container-column"><div class="container-cell">${typeIcon(container.type)}<b>${escapeHtml(container.name)}</b></div></td><td data-label="Type"><span class="badge ${container.type === 'ISO tank' ? '' : 'poly'}">${container.type}</span></td><td data-label="Chemical">${escapeHtml(container.chemical)}</td><td data-label="Strap" class="strap">${formatStrap(container.strap)}</td><td data-label="Status"><span class="badge alert-${alert.kind}">${alert.label}</span></td><td data-label="Last updated" class="muted">${container.updatedAt}</td>${pumpingColumns}<td data-label="Actions"><div class="container-actions"><button class="action-button action-history" data-history="${container.id}">History</button><button class="action-button action-update" data-update="${container.id}">${container.strap === null ? 'Enter strap' : 'Update'}</button><button class="action-button action-edit" data-edit="${container.id}">Edit</button></div></td></tr>`; }
 
 function modal(html) { return `<section class="modal-backdrop"><div class="modal">${html}</div></section>`; }
 function containerModal() { return modal(`<h2>Add container</h2><p>Set up a tank in the currently selected area.</p><form id="container-form"><label class="field">CONTAINER ID<input required name="name" placeholder="Example: ISO #014" /></label><label class="field">TYPE<select name="type"><option>ISO tank</option><option>Poly 330 gal</option></select></label><label class="field">CHEMICAL<input required name="chemical" placeholder="Example: Friction Reducer" /></label><div class="modal-actions"><button type="button" class="secondary" data-close>Cancel</button><button class="primary" type="submit">Add container</button></div></form>`); }
@@ -117,6 +125,10 @@ function bind() {
   document.querySelector('[data-rundown-send]')?.addEventListener('click', () => { const phone = state.rundown.phoneNumber.trim(); if (!phone) { state.rundown.recipientOpen = true; save(); render(); toast('Enter the engineer’s phone number first.'); return; } window.location.href = `sms:${phone}?body=${encodeURIComponent(reportPreview())}`; });
   document.querySelector('[data-sign-out]')?.addEventListener('click', async () => { if (liveMode) await signOut(auth); state.signedIn = false; state.siteId = ''; state.siteName = ''; state.userName = ''; state.isAdmin = false; state.authMode = 'site'; save(); render(); });
   document.querySelectorAll('[data-area]').forEach(button => button.addEventListener('click', () => { state.area = button.dataset.area; save(); render(); }));
+  document.querySelector('[data-toggle-pumping]')?.addEventListener('click', () => { state.pumping.view = !state.pumping.view; save(); render(); });
+  document.querySelector('[data-pumped-bbl]')?.addEventListener('input', event => { pumpingProgram().pumpedBbl = event.currentTarget.value; save(); updatePumpingTargets(); });
+  document.querySelector('[data-pumped-bbl]')?.addEventListener('change', savePumpedVolume);
+  document.querySelectorAll('[data-setpoint]').forEach(input => { input.addEventListener('input', event => { const container = state.containers.find(item => item.id === event.currentTarget.dataset.setpoint); container.setPointGpt = event.currentTarget.value; save(); updatePumpingTargets(); }); input.addEventListener('change', saveSetPoint); });
   document.querySelector('[data-open="container"]')?.addEventListener('click', () => { app.insertAdjacentHTML('beforeend', containerModal()); bindModal(); });
   document.querySelector('[data-open="location"]')?.addEventListener('click', () => { app.insertAdjacentHTML('beforeend', locationModal()); bindModal(); });
   document.querySelectorAll('[data-rotate-site]').forEach(button => button.addEventListener('click', () => { app.insertAdjacentHTML('beforeend', rotateCodeModal(button.dataset.rotateSite)); bindModal(); }));
@@ -133,6 +145,8 @@ function bind() {
 function orderLine() { return `<div class="order-line"><input required name="item" placeholder="Item or material" aria-label="Item or material" /><input name="quantity" placeholder="Quantity" aria-label="Quantity" /><input name="details" placeholder="Size, spec, or notes" aria-label="Item details" /><button class="remove-line" type="button" aria-label="Remove item">×</button></div>`; }
 function bindRequisitionLines() { document.querySelectorAll('.remove-line').forEach(button => { button.onclick = () => { const lines = document.querySelectorAll('.order-line'); if (lines.length > 1) button.closest('.order-line').remove(); }; }); }
 async function submitRequisition(event) { event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); const lines = [...form.querySelectorAll('.order-line')].map(line => ({ item:line.querySelector('[name="item"]').value.trim(), quantity:line.querySelector('[name="quantity"]').value.trim(), details:line.querySelector('[name="details"]').value.trim() })).filter(item => item.item); const record = { id:crypto.randomUUID(), notes:String(data.get('notes')).trim(), items:lines, requestedBy:state.userName, createdAt:new Date().toISOString() }; try { if (liveMode) { const { id, ...payload } = record; const created = await addDoc(collection(database, 'sites', state.siteId, 'requisitions'), payload); record.id = created.id; } state.requisitions = [record, ...(state.requisitions || [])]; save(); render(); toast('Requisition submitted.'); } catch (error) { toast(error.message || 'Unable to submit requisition.'); } }
+async function savePumpedVolume(event) { const value = event.currentTarget.value.trim(); const pumpedBbl = value === '' ? '' : Number(value); if (value !== '' && (!Number.isFinite(pumpedBbl) || pumpedBbl < 0)) { toast('Enter a valid pumped volume.'); return; } const program = pumpingProgram(); program.pumpedBbl = value === '' ? '' : pumpedBbl; save(); try { if (liveMode) await setDoc(doc(database, 'sites', state.siteId, 'pumpingPrograms', pumpingProgramId()), { area: state.area, pumpedBbl: program.pumpedBbl, updatedAtIso: new Date().toISOString(), updatedBy: state.userName }, { merge: true }); toast('Pumped volume saved.'); } catch (error) { toast(error.message || 'Unable to save pumped volume.'); } }
+async function saveSetPoint(event) { const container = state.containers.find(item => item.id === event.currentTarget.dataset.setpoint); const value = event.currentTarget.value.trim(); const setPointGpt = value === '' ? null : Number(value); if (setPointGpt !== null && (!Number.isFinite(setPointGpt) || setPointGpt < 0)) { toast('Enter a valid GPT set point.'); return; } container.setPointGpt = setPointGpt; save(); updatePumpingTargets(); try { if (liveMode) await updateDoc(doc(database, 'sites', state.siteId, 'containers', container.id), { setPointGpt }); toast(`${container.name} set point saved.`); } catch (error) { toast(error.message || 'Unable to save set point.'); } }
 
 function bindModal() {
   document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => document.querySelector('.modal-backdrop')?.remove()));
@@ -209,12 +223,16 @@ async function enterAdmin(event) {
 }
 
 async function hydrateSite() {
-  const [containers, requisitions] = await Promise.all([
+  const [containers, requisitions, pumpingPrograms] = await Promise.all([
     getDocs(collection(database, 'sites', state.siteId, 'containers')),
     getDocs(collection(database, 'sites', state.siteId, 'requisitions')),
+    getDocs(collection(database, 'sites', state.siteId, 'pumpingPrograms')),
   ]);
   state.containers = containers.docs.map(record => ({ id: record.id, ...record.data(), history: record.data().history || [] }));
   state.requisitions = requisitions.docs.map(record => ({ id: record.id, ...record.data() })).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const programs = { ...seed.pumping.programs };
+  pumpingPrograms.docs.forEach(record => { const area = record.data().area; if (area === 'Frac' || area === 'Pump Down') programs[area] = { ...programs[area], ...record.data() }; });
+  state.pumping.programs = programs;
 }
 
 async function hydrateAdmin() {

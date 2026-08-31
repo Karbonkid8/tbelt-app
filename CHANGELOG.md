@@ -2,6 +2,13 @@
 
 All notable user-facing changes to FieldOps are recorded here.
 
+## [Unreleased]
+
+### Added
+
+- Shared Pumping View for expected chemical usage by area.
+- Per-container GPT set points and target gallon calculations from the current pumped BBL volume.
+
 ## [0.1.1] - 2026-08-30
 
 ### Fixed
