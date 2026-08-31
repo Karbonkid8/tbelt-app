@@ -43,7 +43,7 @@ Deleting a site recursively deletes the container, requisition, and access-log s
 
 Each `history` entry contains `strap`, `at`, `atIso`, `by`, and optional `note`.
 
-Containers may also include `setPointGpt`, the active chemical dosage in gallons per thousand gallons. A blank value means that container is not included in Pumping View.
+Containers may also include `setPointGpt`, the active chemical dosage in gallons per thousand gallons. A blank value means that container is not included in the Chemical Usage Calculator.
 
 ## `sites/{siteId}/pumpingPrograms/{areaId}`
 
