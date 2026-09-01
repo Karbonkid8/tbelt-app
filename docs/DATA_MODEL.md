@@ -68,7 +68,7 @@ Wells are created and managed by administrators. Field users select an active we
 | Field | Purpose |
 | --- | --- |
 | `name` | Full well name. |
-| `color` | Fixed visual color name used as the well's on-screen identifier. |
+| `color` | Visual identifier: a preset color name or a custom six-digit hex color such as `#7C3AED`. |
 | `plannedStages` | Expected number of stages for progress display. |
 | `active` | Makes the well available in CNG when `true`. |
 
