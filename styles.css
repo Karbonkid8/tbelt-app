@@ -73,6 +73,11 @@ th { padding:12px 19px; color:#7c7b7a; background:#f4f4f4; font-size:11px; lette
 .overlay { position:fixed; inset:0; z-index:10; display:grid; place-items:center; padding:20px; background:#0b2239aa; backdrop-filter:blur(4px); }
 .gate, .modal { width:min(100%,450px); border-radius:16px; background:#fff; box-shadow:0 24px 72px #06152470; }
 .gate { padding:30px; }
+.gate-site { position:relative; width:min(100%,720px); }
+.gate-site-top { min-height:148px; padding-right:164px; }
+.gate-qr { position:absolute; top:30px; right:30px; display:grid; gap:4px; justify-items:center; text-align:center; color:#68788b; font-size:11px; line-height:1.25; }
+.gate-qr img { width:138px; height:138px; border-radius:8px; image-rendering:pixelated; }
+.gate-qr strong { color:#273548; font-size:12px; }
 .gate-mark { width:48px; height:48px; display:grid; place-items:center; border-radius:13px; background:#fde4e4; color:#a91e22; font-weight:900; font-size:20px; }
 .gate h2, .modal h2 { margin:16px 0 5px; font-size:24px; letter-spacing:-.04em; }
 .gate p, .modal p { margin:0 0 20px; color:#68788b; font-size:14px; line-height:1.45; }
@@ -84,6 +89,7 @@ th { padding:12px 19px; color:#7c7b7a; background:#f4f4f4; font-size:11px; lette
 .gate .primary { width:100%; margin-top:20px; }
 .gate-note { margin-top:13px; color:#7c8a9a; font-size:11px; text-align:center; }
 .app-version { margin-top:12px; color:#7c7b7a; font-size:11px; font-weight:750; letter-spacing:.04em; text-align:center; text-transform:uppercase; }
+@media (max-width:600px) { .gate-site { width:min(100%,450px); } .gate-site-top { min-height:0; padding-right:0; } .gate-qr { position:static; margin:22px auto 0; } }
 .modal { max-height:calc(100dvh - 40px); overflow:auto; padding:25px; }
 .modal-backdrop { position:fixed; inset:0; z-index:8; display:grid; place-items:center; padding:20px; background:#071b2e88; }
 .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:23px; }

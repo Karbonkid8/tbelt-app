@@ -1,5 +1,5 @@
-const CACHE = 'fieldops-shell-v5';
-const APP_SHELL = ['/', '/index.html', '/styles.css?v=20260901-cng', '/app.js?v=20260901-cng', '/firebase-config.js?v=20260901-cng', '/manifest.webmanifest?v=20260901-cng', '/icons/fieldops.svg'];
+const CACHE = 'fieldops-shell-v7';
+const APP_SHELL = ['/', '/index.html', '/styles.css?v=20260901-qr-mobile', '/app.js?v=20260901-qr-mobile', '/firebase-config.js?v=20260901-qr-mobile', '/manifest.webmanifest?v=20260901-qr-mobile', '/icons/fieldops.svg', '/ops-fracplotter-qr.png'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(APP_SHELL)));
