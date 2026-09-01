@@ -89,7 +89,7 @@ Each saved trailer reading is timestamped and grouped by a shared `batchId` when
 | Field | Purpose |
 | --- | --- |
 | `trailerId`, `trailerNumber` | Source location trailer. |
-| `wellId` | Selected well context when the reading was entered. |
+| — | Trailer readings belong to the location, not a well. They remain visible when the active well changes. |
 | `pressurePsi` | Required pressure reading in PSI. |
 | `temperatureF` | Optional temperature in degrees Fahrenheit. |
 | `recordedAtIso`, `by` | Reading audit information. |
