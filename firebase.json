@@ -19,6 +19,9 @@
       "firestore.rules",
       "functions/**",
       "scripts/**",
+      "output/**",
+      "fieldops-qr-code.png",
+      "ops-fracplotter-qr.png",
       "node_modules/**",
       "firebase-debug.log"
     ],
