@@ -2,7 +2,7 @@
 
 FieldOps is a web-based worksite operations app for chemical container tracking, T-Belt RunDown reporting, requisitions, and location administration.
 
-**Current production release:** `v0.1.1`
+**Current production release:** `v0.2.0`
 
 **Production URL:** <https://ops.fracplotter.com>
 
@@ -16,6 +16,7 @@ FieldOps is a web-based worksite operations app for chemical container tracking,
 - ISO and Poly 330 container tracking
 - Strap readings, optional field notes, history, and trend plots
 - Toggleable Chemical Usage Calculator with shared BBL volume and per-container GPT targets
+- CNG trailer pressure and temperature tracking with end-stage MSCF records
 - T-Belt RunDown with SMS report handoff
 - Requisition form foundation
 - Installable PWA behavior

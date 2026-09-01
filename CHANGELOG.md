@@ -2,6 +2,13 @@
 
 All notable user-facing changes to FieldOps are recorded here.
 
+## [Unreleased]
+
+### Added
+
+- CNG tab with location trailer readings, end-stage MSCF confirmation, stage history, and pressure trends.
+- Administrator well setup with aliases, colors, planned stage counts, and active status.
+
 ## [0.2.0] - 2026-08-31
 
 ### Added

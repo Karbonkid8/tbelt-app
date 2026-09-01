@@ -7,6 +7,10 @@ admins/{adminUid}
 sites/{siteId}
   containers/{containerId}
   pumpingPrograms/{areaId}
+  wells/{wellId}
+  cngTrailers/{trailerId}
+  cngReadings/{readingId}
+  cngStages/{stageId}
   requisitions/{requisitionId}
   accessLog/{entryId}
 ```
@@ -56,6 +60,52 @@ There is one active record for each area: `frac` or `pump-down`.
 | `updatedAtIso`, `updatedBy` | Latest saved volume audit metadata. |
 
 Target gallons are calculated in the app from `pumpedBbl × 42 ÷ 1,000 × setPointGpt`.
+
+## `sites/{siteId}/wells/{wellId}`
+
+Wells are created and managed by administrators. Field users select an active well in CNG before recording readings or ending a stage.
+
+| Field | Purpose |
+| --- | --- |
+| `name` | Full well name. |
+| `alias` | Quick field identifier such as `Green` or `Blue`. |
+| `color` | Fixed visual color name used with the well alias. |
+| `plannedStages` | Expected number of stages for progress display. |
+| `active` | Makes the well available in CNG when `true`. |
+
+## `sites/{siteId}/cngTrailers/{trailerId}`
+
+Trailers are shared by the full location rather than a single well.
+
+| Field | Purpose |
+| --- | --- |
+| `position` | Display order in live CNG entry. |
+| `trailerNumber` | Equipment identifier such as `200034`. |
+| `active` | Shows the trailer in live entry when `true`; inactive trailers retain their history. |
+
+## `sites/{siteId}/cngReadings/{readingId}`
+
+Each saved trailer reading is timestamped and grouped by a shared `batchId` when several trailers are saved together.
+
+| Field | Purpose |
+| --- | --- |
+| `trailerId`, `trailerNumber` | Source location trailer. |
+| `wellId` | Selected well context when the reading was entered. |
+| `pressurePsi` | Required pressure reading in PSI. |
+| `temperatureF` | Optional temperature in degrees Fahrenheit. |
+| `recordedAtIso`, `by` | Reading audit information. |
+
+## `sites/{siteId}/cngStages/{stageId}`
+
+An end-stage record stores the total MSCF pulled during that stage. The end timestamp is saved on confirmation. Corrections retain the previous value in `revisions`.
+
+| Field | Purpose |
+| --- | --- |
+| `wellId`, `stageNumber` | Well assignment and stage number. |
+| `mscf` | Total MSCF pulled during the completed stage. |
+| `note` | Optional stage-end note. |
+| `endedAtIso`, `by` | End-stage audit information. |
+| `revisions` | Newest-first correction history. |
 
 ## `sites/{siteId}/requisitions/{requisitionId}`
 

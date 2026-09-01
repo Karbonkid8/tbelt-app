@@ -41,6 +41,26 @@ service cloud.firestore {
         allow delete: if isAdmin();
       }
 
+      match /wells/{wellId} {
+        allow read: if belongsToSite(siteId) || isAdmin();
+        allow create, update, delete: if isAdmin();
+      }
+
+      match /cngTrailers/{trailerId} {
+        allow read, create, update: if belongsToSite(siteId) || isAdmin();
+        allow delete: if isAdmin();
+      }
+
+      match /cngReadings/{readingId} {
+        allow read, create: if belongsToSite(siteId) || isAdmin();
+        allow update, delete: if isAdmin();
+      }
+
+      match /cngStages/{stageId} {
+        allow read, create, update: if belongsToSite(siteId) || isAdmin();
+        allow delete: if isAdmin();
+      }
+
       match /accessLog/{entryId} {
         allow read: if isAdmin();
         allow write: if false;
