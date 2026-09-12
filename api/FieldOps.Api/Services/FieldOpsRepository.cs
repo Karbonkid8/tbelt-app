@@ -113,7 +113,18 @@ public sealed class FieldOpsRepository(FirestoreDb database, IConfiguration conf
     private static string? StringValue(DocumentSnapshot document, string field) => document.TryGetValue(field, out string? value) ? value : null;
     private static bool BoolValue(DocumentSnapshot document, string field) => document.TryGetValue(field, out bool value) && value;
     private static int IntValue(DocumentSnapshot document, string field) => document.TryGetValue(field, out long value) ? checked((int)value) : 0;
-    private static double? NumberValue(DocumentSnapshot document, string field) => document.TryGetValue(field, out double value) ? value : document.TryGetValue(field, out long integer) ? integer : null;
+    private static double? NumberValue(DocumentSnapshot document, string field)
+    {
+        if (!document.ToDictionary().TryGetValue(field, out var rawValue)) return null;
+
+        return rawValue switch
+        {
+            double value => value,
+            long integer => integer,
+            int integer => integer,
+            _ => null,
+        };
+    }
 
     private sealed record StoredReading(string TrailerId, double PressurePsi, double? TemperatureF, string RecordedAtIso, string? By);
 }

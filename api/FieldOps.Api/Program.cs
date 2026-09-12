@@ -1,4 +1,5 @@
 using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Authentication;
 using FieldOps.Api.Auth;
@@ -11,7 +12,11 @@ var projectId = builder.Configuration["GoogleCloud:ProjectId"]
 var dashboardOrigins = builder.Configuration.GetSection("Dashboard:Origins").Get<string[]>()
     ?? [builder.Configuration["Dashboard:Origin"] ?? "https://dashboard.fracplotter.com"];
 
-FirebaseApp.Create();
+FirebaseApp.Create(new AppOptions
+{
+    ProjectId = projectId,
+    Credential = GoogleCredential.GetApplicationDefault(),
+});
 
 builder.Services.AddSingleton(new FirestoreDbBuilder { ProjectId = projectId }.Build());
 builder.Services.AddSingleton<FieldOpsRepository>();
