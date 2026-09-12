@@ -30,7 +30,7 @@ public sealed class FieldOpsRepository(FirestoreDb database, IConfiguration conf
         var inventory = inventoryTask.Result!;
         var trailerAlerts = BuildTrailerAlerts(trailers);
         var alerts = inventory.Alerts.Concat(trailerAlerts).ToList();
-        return new DashboardDto(site, wellsTask.Result, trailers, inventory, alerts, DateTimeOffset.UtcNow.ToString("O"));
+        return new DashboardDto(site, wellsTask.Result!, trailers, inventory, alerts, DateTimeOffset.UtcNow.ToString("O"));
     }
 
     public async Task<InventoryDto?> GetInventoryAsync(string siteId, CancellationToken cancellationToken)
@@ -66,11 +66,15 @@ public sealed class FieldOpsRepository(FirestoreDb database, IConfiguration conf
         return !site.Exists || !BoolValue(site, "active") ? null : new SiteDto(site.Id, StringValue(site, "name") ?? site.Id);
     }
 
-    private async Task<IReadOnlyList<WellDto>> GetActiveWellsAsync(string siteId, CancellationToken cancellationToken) =>
-        (await database.Collection("sites").Document(siteId).Collection("wells").WhereEqualTo("active", true).GetSnapshotAsync(cancellationToken))
+    public async Task<IReadOnlyList<WellDto>?> GetActiveWellsAsync(string siteId, CancellationToken cancellationToken)
+    {
+        if (await GetSiteAsync(siteId, cancellationToken) is null) return null;
+
+        return (await database.Collection("sites").Document(siteId).Collection("wells").WhereEqualTo("active", true).GetSnapshotAsync(cancellationToken))
             .Documents.Select(well => new WellDto(well.Id, StringValue(well, "name") ?? well.Id, StringValue(well, "color") ?? "#7c7b7a", IntValue(well, "plannedStages")))
             .OrderBy(well => well.Name)
             .ToList();
+    }
 
     private TrailerDto TrailerFrom(DocumentSnapshot document, IReadOnlyDictionary<string, StoredReading> latestByTrailer)
     {

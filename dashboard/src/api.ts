@@ -7,7 +7,8 @@ export type Alert = { type: string; severity: 'critical' | 'warning'; resourceId
 export type Reading = { pressurePsi: number; temperatureF: number | null; recordedAtIso: string; by: string | null };
 export type Trailer = { id: string; position: number; trailerNumber: string; active: boolean; latestReading: Reading | null };
 export type Container = { id: string; name: string; type: string; area: string; chemical: string; strap: number | null; updatedAtIso: string | null };
-export type Dashboard = { site: Site; activeWells: { id: string; name: string }[]; trailers: Trailer[]; inventory: { containers: Container[]; lowIsoThresholdInches: number; alerts: Alert[] }; alerts: Alert[]; generatedAtIso: string };
+export type Well = { id: string; name: string; color: string; plannedStages: number };
+export type Dashboard = { site: Site; activeWells: Well[]; trailers: Trailer[]; inventory: { containers: Container[]; lowIsoThresholdInches: number; alerts: Alert[] }; alerts: Alert[]; generatedAtIso: string };
 
 async function request<T>(user: User, path: string): Promise<T> {
   const token = await user.getIdToken();
@@ -19,4 +20,5 @@ async function request<T>(user: User, path: string): Promise<T> {
 export const fieldOpsApi = {
   listSites: (user: User) => request<Site[]>(user, '/sites'),
   dashboard: (user: User, siteId: string) => request<Dashboard>(user, `/sites/${encodeURIComponent(siteId)}/dashboard`),
+  activeWells: (user: User, siteId: string) => request<Well[]>(user, `/sites/${encodeURIComponent(siteId)}/wells`),
 };

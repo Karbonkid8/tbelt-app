@@ -62,6 +62,14 @@ v1.MapGet("/sites/{siteId}/inventory", async (string siteId, FieldOpsRepository 
     .WithName("GetSiteInventory")
     .WithSummary("Returns all chemical containers and inventory alerts for one location.");
 
+v1.MapGet("/sites/{siteId}/wells", async (string siteId, FieldOpsRepository repository, CancellationToken cancellationToken) =>
+{
+    var wells = await repository.GetActiveWellsAsync(siteId, cancellationToken);
+    return wells is null ? Results.NotFound() : Results.Ok(wells);
+})
+    .WithName("GetActiveSiteWells")
+    .WithSummary("Returns active wells for one location.");
+
 v1.MapGet("/sites/{siteId}/trailers", async (string siteId, bool? active, FieldOpsRepository repository, CancellationToken cancellationToken) =>
 {
     var trailers = await repository.GetTrailersAsync(siteId, active ?? true, cancellationToken);
