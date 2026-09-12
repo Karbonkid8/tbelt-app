@@ -1,0 +1,10 @@
+namespace FieldOps.Api.Models;
+
+public sealed record SiteDto(string Id, string Name);
+public sealed record WellDto(string Id, string Name, string Color, int PlannedStages);
+public sealed record ReadingDto(double PressurePsi, double? TemperatureF, string RecordedAtIso, string? By);
+public sealed record TrailerDto(string Id, int Position, string TrailerNumber, bool Active, ReadingDto? LatestReading);
+public sealed record ContainerDto(string Id, string Name, string Type, string Area, string Chemical, double? Strap, string? UpdatedAtIso);
+public sealed record AlertDto(string Type, string Severity, string ResourceId, string ResourceName, string Message, string? RecordedAtIso);
+public sealed record InventoryDto(IReadOnlyList<ContainerDto> Containers, double LowIsoThresholdInches, IReadOnlyList<AlertDto> Alerts);
+public sealed record DashboardDto(SiteDto Site, IReadOnlyList<WellDto> ActiveWells, IReadOnlyList<TrailerDto> Trailers, InventoryDto Inventory, IReadOnlyList<AlertDto> Alerts, string GeneratedAtIso);

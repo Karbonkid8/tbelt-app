@@ -6,6 +6,8 @@ FieldOps is a web-based worksite operations app for chemical container tracking,
 
 **Production URL:** <https://ops.fracplotter.com>
 
+**Integration API (in development):** `api/FieldOps.Api` is a .NET 8, Firestore-backed REST API intended for <https://api.fracplotter.com/v1>. See [api/README.md](api/README.md) for its secured endpoints and deployment requirements.
+
 **Firebase project:** `fieldops-260e1` (Firestore region: `us-west3`)
 
 ## What is included

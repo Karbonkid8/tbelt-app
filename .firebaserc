@@ -1,5 +1,21 @@
 {
   "projects": {
     "default": "fieldops-260e1"
-  }
+  },
+  "targets": {
+    "fieldops-260e1": {
+      "hosting": {
+        "ops": [
+          "fieldops-260e1"
+        ],
+        "dashboard": [
+          "fieldops-dashboard"
+        ],
+        "api": [
+          "fieldops-api"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

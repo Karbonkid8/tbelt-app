@@ -8,59 +8,48 @@
       "codebase": "default"
     }
   ],
-  "hosting": {
-    "public": ".",
-    "ignore": [
-      "firebase.json",
-      ".firebaserc",
-      ".git/**",
-      ".gitignore",
-      "README.md",
-      "firestore.rules",
-      "functions/**",
-      "scripts/**",
-      "output/**",
-      "fieldops-qr-code.png",
-      "node_modules/**",
-      "firebase-debug.log"
-    ],
-    "headers": [
-      {
-        "source": "/index.html",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache"
-          }
-        ]
-      },
-      {
-        "source": "/sw.js",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache"
-          }
-        ]
-      },
-      {
-        "source": "**/*.js",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache"
-          }
-        ]
-      },
-      {
-        "source": "**/*.css",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache"
-          }
-        ]
-      }
-    ]
-  }
+  "hosting": [
+    {
+      "target": "ops",
+      "public": ".",
+      "ignore": [
+        "firebase.json",
+        ".firebaserc",
+        ".git/**",
+        ".gitignore",
+        "README.md",
+        "firestore.rules",
+        "functions/**",
+        "scripts/**",
+        "api/**",
+        "dashboard/**",
+        "output/**",
+        "fieldops-qr-code.png",
+        "node_modules/**",
+        "firebase-debug.log"
+      ],
+      "headers": [
+        { "source": "/index.html", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+        { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+        { "source": "**/*.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+        { "source": "**/*.css", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
+      ]
+    },
+    {
+      "target": "dashboard",
+      "public": "dashboard/dist",
+      "ignore": ["firebase-debug.log", ".firebase/**"],
+      "headers": [
+        { "source": "**/*.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+        { "source": "**/*.css", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
+      ]
+    },
+    {
+      "target": "api",
+      "public": "api-hosting",
+      "rewrites": [
+        { "source": "**", "run": { "serviceId": "fieldops-api", "region": "us-west3" } }
+      ]
+    }
+  ]
 }
