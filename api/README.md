@@ -27,7 +27,7 @@ dotnet restore FieldOps.Api/FieldOps.Api.csproj
 dotnet run --project FieldOps.Api/FieldOps.Api.csproj
 ```
 
-The API runs with `fieldops-260e1` as its configured Google Cloud project. Override settings with environment variables such as `GoogleCloud__ProjectId` and `Dashboard__Origin`.
+The API runs with `fieldops-260e1` as its configured Google Cloud project. Override settings with environment variables such as `GoogleCloud__ProjectId` and `Dashboard__Origins__0`. The production configuration permits both the final dashboard domain and Firebase's temporary dashboard URL.
 
 ## Deployment
 

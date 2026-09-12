@@ -8,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 var projectId = builder.Configuration["GoogleCloud:ProjectId"]
     ?? throw new InvalidOperationException("GoogleCloud:ProjectId must be configured.");
+var dashboardOrigins = builder.Configuration.GetSection("Dashboard:Origins").Get<string[]>()
+    ?? [builder.Configuration["Dashboard:Origin"] ?? "https://dashboard.fracplotter.com"];
 
 FirebaseApp.Create();
 
@@ -18,7 +20,7 @@ builder.Services.AddAuthentication(FirebaseAuthenticationDefaults.Scheme)
         FirebaseAuthenticationDefaults.Scheme, _ => { });
 builder.Services.AddAuthorization();
 builder.Services.AddCors(options => options.AddPolicy("dashboard", policy =>
-    policy.WithOrigins(builder.Configuration["Dashboard:Origin"] ?? "https://dashboard.fracplotter.com")
+    policy.WithOrigins(dashboardOrigins)
         .AllowAnyHeader()
         .AllowAnyMethod()));
 builder.Services.AddEndpointsApiExplorer();
