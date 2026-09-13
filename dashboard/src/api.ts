@@ -12,7 +12,7 @@ export type Dashboard = { site: Site; activeWells: Well[]; trailers: Trailer[]; 
 export type CngStage = { id: string; wellId: string; wellName: string; stageNumber: number; mscf: number; note: string | null; endedAtIso: string | null; by: string | null };
 export type CngStageTotals = { totalMscf: number; completedStageCount: number; stages: CngStage[]; generatedAtIso: string };
 export type CngTrailerTrend = { trailerId: string; trailerNumber: string; readings: Reading[] };
-export type CngDispatch = { id: string; sourceTrailerId: string; sourceTrailerNumber: string; replacementTrailerNumber: string | null; status: 'dispatched'; travelTimeHours: number; targetArrivalPsi: number; dispatchedAtIso: string; projectedArrivalIso: string; dispatchedBy: string };
+export type CngDispatch = { id: string; sourceTrailerId: string; sourceTrailerNumber: string; replacementTrailerNumber: string | null; status: 'dispatched' | 'arrived' | 'cancelled'; travelTimeHours: number; targetArrivalPsi: number; dispatchedAtIso: string; projectedArrivalIso: string; dispatchedBy: string; resolvedAtIso: string | null; resolvedBy: string | null };
 export type CreateCngDispatch = { sourceTrailerId: string; replacementTrailerNumber?: string; travelTimeHours: number; targetArrivalPsi: number };
 
 async function request<T>(user: User, path: string, init?: RequestInit): Promise<T> {
@@ -32,5 +32,7 @@ export const fieldOpsApi = {
   cngStageTotals: (user: User, siteId: string) => request<CngStageTotals>(user, `/sites/${encodeURIComponent(siteId)}/cng/stages`),
   cngPressureTrends: (user: User, siteId: string) => request<CngTrailerTrend[]>(user, `/sites/${encodeURIComponent(siteId)}/cng/pressure-trends`),
   cngDispatches: (user: User, siteId: string) => request<CngDispatch[]>(user, `/sites/${encodeURIComponent(siteId)}/cng/dispatches`),
+  cngDispatchHistory: (user: User, siteId: string) => request<CngDispatch[]>(user, `/sites/${encodeURIComponent(siteId)}/cng/dispatches/history`),
   createCngDispatch: (user: User, siteId: string, dispatch: CreateCngDispatch) => request<CngDispatch>(user, `/sites/${encodeURIComponent(siteId)}/cng/dispatches`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dispatch) }),
+  resolveCngDispatch: (user: User, siteId: string, dispatchId: string, status: 'arrived' | 'cancelled') => request<CngDispatch>(user, `/sites/${encodeURIComponent(siteId)}/cng/dispatches/${encodeURIComponent(dispatchId)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) }),
 };

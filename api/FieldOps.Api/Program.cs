@@ -103,6 +103,14 @@ v1.MapGet("/sites/{siteId}/cng/dispatches", async (string siteId, FieldOpsReposi
     .WithName("GetActiveCngDispatches")
     .WithSummary("Returns CNG replacement trailers currently in transit.");
 
+v1.MapGet("/sites/{siteId}/cng/dispatches/history", async (string siteId, FieldOpsRepository repository, CancellationToken cancellationToken) =>
+{
+    var dispatches = await repository.GetCngDispatchHistoryAsync(siteId, cancellationToken);
+    return dispatches is null ? Results.NotFound() : Results.Ok(dispatches);
+})
+    .WithName("GetCngDispatchHistory")
+    .WithSummary("Returns CNG replacement dispatch history.");
+
 v1.MapPost("/sites/{siteId}/cng/dispatches", async (string siteId, CreateCngDispatchRequest request, ClaimsPrincipal user, FieldOpsRepository repository, CancellationToken cancellationToken) =>
 {
     if (string.IsNullOrWhiteSpace(request.SourceTrailerId))
@@ -126,6 +134,25 @@ v1.MapPost("/sites/{siteId}/cng/dispatches", async (string siteId, CreateCngDisp
 })
     .WithName("CreateCngDispatch")
     .WithSummary("Records a replacement CNG trailer as dispatched.");
+
+v1.MapPatch("/sites/{siteId}/cng/dispatches/{dispatchId}", async (string siteId, string dispatchId, ResolveCngDispatchRequest request, ClaimsPrincipal user, FieldOpsRepository repository, CancellationToken cancellationToken) =>
+{
+    if (request.Status is not ("arrived" or "cancelled"))
+        return Results.ValidationProblem(new Dictionary<string, string[]> { ["status"] = ["Status must be arrived or cancelled."] });
+
+    var actor = user.FindFirst(ClaimTypes.Email)?.Value
+        ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+        ?? "Unknown administrator";
+    var result = await repository.ResolveCngDispatchAsync(siteId, dispatchId, request.Status, actor, cancellationToken);
+    return result.Status switch
+    {
+        CngDispatchResolveStatus.SiteNotFound or CngDispatchResolveStatus.DispatchNotFound => Results.NotFound(),
+        CngDispatchResolveStatus.NotInTransit => Results.Conflict(new { message = "Only an in-transit replacement can be updated." }),
+        _ => Results.Ok(result.Dispatch),
+    };
+})
+    .WithName("ResolveCngDispatch")
+    .WithSummary("Marks an in-transit CNG replacement as arrived or cancelled.");
 
 v1.MapGet("/sites/{siteId}/trailers", async (string siteId, bool? active, FieldOpsRepository repository, CancellationToken cancellationToken) =>
 {

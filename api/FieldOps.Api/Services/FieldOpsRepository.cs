@@ -159,7 +159,9 @@ public sealed class FieldOpsRepository(FirestoreDb database, IConfiguration conf
             request.TargetArrivalPsi,
             dispatchedAt.ToString("O"),
             dispatchedAt.AddHours(request.TravelTimeHours).ToString("O"),
-            actor);
+            actor,
+            null,
+            null);
 
         try
         {
@@ -180,6 +182,40 @@ public sealed class FieldOpsRepository(FirestoreDb database, IConfiguration conf
         }
 
         return new CngDispatchCreateResult(CngDispatchCreateStatus.Created, dispatch);
+    }
+
+    public async Task<IReadOnlyList<CngDispatchDto>?> GetCngDispatchHistoryAsync(string siteId, CancellationToken cancellationToken)
+    {
+        if (await GetSiteAsync(siteId, cancellationToken) is null) return null;
+        return (await database.Collection("sites").Document(siteId).Collection("cngDispatches").GetSnapshotAsync(cancellationToken))
+            .Documents.Select(CngDispatchFrom)
+            .OrderByDescending(dispatch => ParseTimestamp(dispatch.DispatchedAtIso))
+            .ToList();
+    }
+
+    public async Task<CngDispatchResolveResult> ResolveCngDispatchAsync(string siteId, string dispatchId, string status, string actor, CancellationToken cancellationToken)
+    {
+        if (await GetSiteAsync(siteId, cancellationToken) is null) return new(CngDispatchResolveStatus.SiteNotFound, null);
+        var siteReference = database.Collection("sites").Document(siteId);
+        var dispatchReference = siteReference.Collection("cngDispatches").Document(dispatchId);
+        try
+        {
+            var resolved = await database.RunTransactionAsync(async transaction =>
+            {
+                var document = await transaction.GetSnapshotAsync(dispatchReference);
+                if (!document.Exists) throw new CngDispatchNotFoundException();
+                var dispatch = CngDispatchFrom(document);
+                if (dispatch.Status != "dispatched") throw new CngDispatchNotInTransitException();
+
+                var next = dispatch with { Status = status, ResolvedAtIso = DateTimeOffset.UtcNow.ToString("O"), ResolvedBy = actor };
+                transaction.Set(dispatchReference, CngDispatchFields(next));
+                transaction.Delete(siteReference.Collection("cngActiveDispatches").Document(dispatch.SourceTrailerId));
+                return next;
+            });
+            return new(CngDispatchResolveStatus.Resolved, resolved);
+        }
+        catch (CngDispatchNotFoundException) { return new(CngDispatchResolveStatus.DispatchNotFound, null); }
+        catch (CngDispatchNotInTransitException) { return new(CngDispatchResolveStatus.NotInTransit, null); }
     }
 
     private TrailerDto TrailerFrom(DocumentSnapshot document, IReadOnlyDictionary<string, StoredReading> latestByTrailer)
@@ -213,7 +249,9 @@ public sealed class FieldOpsRepository(FirestoreDb database, IConfiguration conf
         NumberValue(document, "targetArrivalPsi") ?? 0,
         StringValue(document, "dispatchedAtIso") ?? "",
         StringValue(document, "projectedArrivalIso") ?? "",
-        StringValue(document, "dispatchedBy") ?? "");
+        StringValue(document, "dispatchedBy") ?? "",
+        EmptyToNull(StringValue(document, "resolvedAtIso")),
+        EmptyToNull(StringValue(document, "resolvedBy")));
     private static Dictionary<string, object> CngDispatchFields(CngDispatchDto dispatch) => new()
     {
         ["id"] = dispatch.Id,
@@ -226,6 +264,8 @@ public sealed class FieldOpsRepository(FirestoreDb database, IConfiguration conf
         ["dispatchedAtIso"] = dispatch.DispatchedAtIso,
         ["projectedArrivalIso"] = dispatch.ProjectedArrivalIso,
         ["dispatchedBy"] = dispatch.DispatchedBy,
+        ["resolvedAtIso"] = dispatch.ResolvedAtIso ?? "",
+        ["resolvedBy"] = dispatch.ResolvedBy ?? "",
     };
 
     private IReadOnlyList<AlertDto> BuildInventoryAlerts(IEnumerable<ContainerDto> containers)
@@ -276,3 +316,7 @@ public sealed class FieldOpsRepository(FirestoreDb database, IConfiguration conf
 public enum CngDispatchCreateStatus { Created, SiteNotFound, TrailerNotAvailable, ActiveDispatchExists }
 public sealed record CngDispatchCreateResult(CngDispatchCreateStatus Status, CngDispatchDto? Dispatch);
 public sealed class ActiveCngDispatchExistsException : Exception { }
+public enum CngDispatchResolveStatus { Resolved, SiteNotFound, DispatchNotFound, NotInTransit }
+public sealed record CngDispatchResolveResult(CngDispatchResolveStatus Status, CngDispatchDto? Dispatch);
+public sealed class CngDispatchNotFoundException : Exception { }
+public sealed class CngDispatchNotInTransitException : Exception { }
