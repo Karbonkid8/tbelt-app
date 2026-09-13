@@ -9,6 +9,8 @@ export type Trailer = { id: string; position: number; trailerNumber: string; act
 export type Container = { id: string; name: string; type: string; area: string; chemical: string; strap: number | null; updatedAtIso: string | null };
 export type Well = { id: string; name: string; color: string; plannedStages: number };
 export type Dashboard = { site: Site; activeWells: Well[]; trailers: Trailer[]; inventory: { containers: Container[]; lowIsoThresholdInches: number; alerts: Alert[] }; alerts: Alert[]; generatedAtIso: string };
+export type CngStage = { id: string; wellId: string; wellName: string; stageNumber: number; mscf: number; note: string | null; endedAtIso: string | null; by: string | null };
+export type CngStageTotals = { totalMscf: number; completedStageCount: number; stages: CngStage[]; generatedAtIso: string };
 
 async function request<T>(user: User, path: string): Promise<T> {
   const token = await user.getIdToken();
@@ -21,4 +23,5 @@ export const fieldOpsApi = {
   listSites: (user: User) => request<Site[]>(user, '/sites'),
   dashboard: (user: User, siteId: string) => request<Dashboard>(user, `/sites/${encodeURIComponent(siteId)}/dashboard`),
   activeWells: (user: User, siteId: string) => request<Well[]>(user, `/sites/${encodeURIComponent(siteId)}/wells`),
+  cngStageTotals: (user: User, siteId: string) => request<CngStageTotals>(user, `/sites/${encodeURIComponent(siteId)}/cng/stages`),
 };
