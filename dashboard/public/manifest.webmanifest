@@ -1,0 +1,19 @@
+{
+  "name": "FieldOps Dashboard",
+  "short_name": "FieldOps Dashboard",
+  "description": "Live FieldOps operations dashboard for site, CNG, and inventory status.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#262626",
+  "theme_color": "#262626",
+  "icons": [
+    {
+      "src": "/icons/fieldops-dashboard.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
