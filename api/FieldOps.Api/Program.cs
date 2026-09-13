@@ -2,6 +2,7 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.OpenApi;
 using System.Security.Claims;
 using FieldOps.Api.Auth;
 using FieldOps.Api.Models;
@@ -31,7 +32,15 @@ builder.Services.AddCors(options => options.AddPolicy("dashboard", policy =>
         .AllowAnyHeader()
         .AllowAnyMethod()));
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "FieldOps Operations API",
+        Version = "v1",
+        Description = "Authenticated REST API for FieldOps site status, chemical inventory, CNG operations, and replacement-dispatch workflows. All /v1 endpoints require an active Firebase administrator bearer token.",
+    });
+});
 
 var app = builder.Build();
 
@@ -40,7 +49,15 @@ app.UseCors("dashboard");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(options =>
+{
+    options.DocumentTitle = "FieldOps Operations API";
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "FieldOps Operations API v1");
+});
+
+app.MapGet("/", () => Results.Redirect("/swagger"))
+    .AllowAnonymous()
+    .ExcludeFromDescription();
 
 app.MapGet("/healthz", () => Results.Ok(new { status = "ok" }))
     .AllowAnonymous()
