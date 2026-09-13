@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { App, Login } from './App';
 import { auth } from './firebase';
 import './styles.css';
+import './views.css';
 
 function Root() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
