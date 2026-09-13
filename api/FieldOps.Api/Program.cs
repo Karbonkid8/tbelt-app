@@ -77,6 +77,14 @@ v1.MapGet("/sites/{siteId}/wells", async (string siteId, FieldOpsRepository repo
     .WithName("GetActiveSiteWells")
     .WithSummary("Returns active wells for one location.");
 
+v1.MapGet("/sites/{siteId}/cng/stages", async (string siteId, FieldOpsRepository repository, CancellationToken cancellationToken) =>
+{
+    var totals = await repository.GetCngStageTotalsAsync(siteId, cancellationToken);
+    return totals is null ? Results.NotFound() : Results.Ok(totals);
+})
+    .WithName("GetCngStageTotals")
+    .WithSummary("Returns all posted CNG stage totals and the location-wide MSCF aggregate.");
+
 v1.MapGet("/sites/{siteId}/trailers", async (string siteId, bool? active, FieldOpsRepository repository, CancellationToken cancellationToken) =>
 {
     var trailers = await repository.GetTrailersAsync(siteId, active ?? true, cancellationToken);

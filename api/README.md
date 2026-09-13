@@ -13,6 +13,7 @@ All `/v1` endpoints require a Firebase ID token from an active FieldOps administ
 | `GET` | `/v1/sites/{siteId}/dashboard` | One-call dashboard summary: active wells, trailers, inventory, and alerts. |
 | `GET` | `/v1/sites/{siteId}/inventory` | All containers plus low, stale, and missing-strap alerts. |
 | `GET` | `/v1/sites/{siteId}/wells` | Active wells with their planned-stage counts and display colors. |
+| `GET` | `/v1/sites/{siteId}/cng/stages` | Posted CNG stage records with a location-wide MSCF total. |
 | `GET` | `/v1/sites/{siteId}/trailers?active=true` | Trailers with their latest pressure and temperature readings. |
 
 Swagger documentation is available at `/swagger` once the service is running.

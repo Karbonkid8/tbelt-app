@@ -76,6 +76,31 @@ public sealed class FieldOpsRepository(FirestoreDb database, IConfiguration conf
             .ToList();
     }
 
+    public async Task<CngStageTotalsDto?> GetCngStageTotalsAsync(string siteId, CancellationToken cancellationToken)
+    {
+        if (await GetSiteAsync(siteId, cancellationToken) is null) return null;
+
+        var stagesTask = database.Collection("sites").Document(siteId).Collection("cngStages").GetSnapshotAsync(cancellationToken);
+        var wellsTask = database.Collection("sites").Document(siteId).Collection("wells").GetSnapshotAsync(cancellationToken);
+        await Task.WhenAll(stagesTask, wellsTask);
+
+        var wellNames = wellsTask.Result.Documents.ToDictionary(
+            well => well.Id,
+            well => StringValue(well, "name") ?? well.Id);
+        var stages = stagesTask.Result.Documents
+            .Select(stage => CngStageFrom(stage, wellNames))
+            .OrderByDescending(stage => ParseTimestamp(stage.EndedAtIso ?? string.Empty))
+            .ThenBy(stage => stage.WellName)
+            .ThenBy(stage => stage.StageNumber)
+            .ToList();
+
+        return new CngStageTotalsDto(
+            stages.Sum(stage => stage.Mscf),
+            stages.Count,
+            stages,
+            DateTimeOffset.UtcNow.ToString("O"));
+    }
+
     private TrailerDto TrailerFrom(DocumentSnapshot document, IReadOnlyDictionary<string, StoredReading> latestByTrailer)
     {
         latestByTrailer.TryGetValue(document.Id, out var reading);
@@ -84,6 +109,19 @@ public sealed class FieldOpsRepository(FirestoreDb database, IConfiguration conf
 
     private static ContainerDto ContainerFrom(DocumentSnapshot document) => new(document.Id, StringValue(document, "name") ?? document.Id, StringValue(document, "type") ?? "", StringValue(document, "area") ?? "", StringValue(document, "chemical") ?? "", NumberValue(document, "strap"), StringValue(document, "updatedAtIso"));
     private static StoredReading ReadingFrom(DocumentSnapshot document) => new(StringValue(document, "trailerId") ?? "", NumberValue(document, "pressurePsi") ?? 0, NumberValue(document, "temperatureF"), StringValue(document, "recordedAtIso") ?? "", StringValue(document, "by"));
+    private static CngStageDto CngStageFrom(DocumentSnapshot document, IReadOnlyDictionary<string, string> wellNames)
+    {
+        var wellId = StringValue(document, "wellId") ?? "";
+        return new CngStageDto(
+            document.Id,
+            wellId,
+            wellNames.GetValueOrDefault(wellId, wellId),
+            IntValue(document, "stageNumber"),
+            NumberValue(document, "mscf") ?? 0,
+            StringValue(document, "note"),
+            StringValue(document, "endedAtIso"),
+            StringValue(document, "by"));
+    }
 
     private IReadOnlyList<AlertDto> BuildInventoryAlerts(IEnumerable<ContainerDto> containers)
     {
