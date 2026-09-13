@@ -101,6 +101,87 @@ public sealed class FieldOpsRepository(FirestoreDb database, IConfiguration conf
             DateTimeOffset.UtcNow.ToString("O"));
     }
 
+    public async Task<IReadOnlyList<CngTrailerTrendDto>?> GetCngPressureTrendsAsync(string siteId, CancellationToken cancellationToken)
+    {
+        if (await GetSiteAsync(siteId, cancellationToken) is null) return null;
+
+        var trailersTask = database.Collection("sites").Document(siteId).Collection("cngTrailers").GetSnapshotAsync(cancellationToken);
+        var readingsTask = database.Collection("sites").Document(siteId).Collection("cngReadings").GetSnapshotAsync(cancellationToken);
+        await Task.WhenAll(trailersTask, readingsTask);
+
+        var readingsByTrailer = readingsTask.Result.Documents
+            .Select(ReadingFrom)
+            .GroupBy(reading => reading.TrailerId)
+            .ToDictionary(group => group.Key, group => (IReadOnlyList<ReadingDto>)group
+                .OrderBy(reading => ParseTimestamp(reading.RecordedAtIso))
+                .Select(reading => new ReadingDto(reading.PressurePsi, reading.TemperatureF, reading.RecordedAtIso, reading.By))
+                .ToList());
+
+        return trailersTask.Result.Documents
+            .Where(document => BoolValue(document, "active"))
+            .Select(document => new CngTrailerTrendDto(
+                document.Id,
+                StringValue(document, "trailerNumber") ?? document.Id,
+                readingsByTrailer.GetValueOrDefault(document.Id, Array.Empty<ReadingDto>())))
+            .OrderBy(trailer => trailer.TrailerNumber)
+            .ToList();
+    }
+
+    public async Task<IReadOnlyList<CngDispatchDto>?> GetActiveCngDispatchesAsync(string siteId, CancellationToken cancellationToken)
+    {
+        if (await GetSiteAsync(siteId, cancellationToken) is null) return null;
+
+        return (await database.Collection("sites").Document(siteId).Collection("cngActiveDispatches").GetSnapshotAsync(cancellationToken))
+            .Documents.Select(CngDispatchFrom)
+            .OrderByDescending(dispatch => ParseTimestamp(dispatch.DispatchedAtIso))
+            .ToList();
+    }
+
+    public async Task<CngDispatchCreateResult> CreateCngDispatchAsync(string siteId, CreateCngDispatchRequest request, string actor, CancellationToken cancellationToken)
+    {
+        var site = await GetSiteAsync(siteId, cancellationToken);
+        if (site is null) return new CngDispatchCreateResult(CngDispatchCreateStatus.SiteNotFound, null);
+
+        var siteReference = database.Collection("sites").Document(siteId);
+        var trailer = await siteReference.Collection("cngTrailers").Document(request.SourceTrailerId).GetSnapshotAsync(cancellationToken);
+        if (!trailer.Exists || !BoolValue(trailer, "active")) return new CngDispatchCreateResult(CngDispatchCreateStatus.TrailerNotAvailable, null);
+
+        var dispatchReference = siteReference.Collection("cngDispatches").Document();
+        var activeReference = siteReference.Collection("cngActiveDispatches").Document(request.SourceTrailerId);
+        var dispatchedAt = DateTimeOffset.UtcNow;
+        var dispatch = new CngDispatchDto(
+            dispatchReference.Id,
+            request.SourceTrailerId,
+            StringValue(trailer, "trailerNumber") ?? trailer.Id,
+            string.IsNullOrWhiteSpace(request.ReplacementTrailerNumber) ? null : request.ReplacementTrailerNumber.Trim(),
+            "dispatched",
+            request.TravelTimeHours,
+            request.TargetArrivalPsi,
+            dispatchedAt.ToString("O"),
+            dispatchedAt.AddHours(request.TravelTimeHours).ToString("O"),
+            actor);
+
+        try
+        {
+            await database.RunTransactionAsync(async transaction =>
+            {
+                var active = await transaction.GetSnapshotAsync(activeReference);
+                if (active.Exists) throw new ActiveCngDispatchExistsException();
+
+                var fields = CngDispatchFields(dispatch);
+                transaction.Set(dispatchReference, fields);
+                transaction.Set(activeReference, fields);
+                return 0;
+            });
+        }
+        catch (ActiveCngDispatchExistsException)
+        {
+            return new CngDispatchCreateResult(CngDispatchCreateStatus.ActiveDispatchExists, null);
+        }
+
+        return new CngDispatchCreateResult(CngDispatchCreateStatus.Created, dispatch);
+    }
+
     private TrailerDto TrailerFrom(DocumentSnapshot document, IReadOnlyDictionary<string, StoredReading> latestByTrailer)
     {
         latestByTrailer.TryGetValue(document.Id, out var reading);
@@ -122,6 +203,30 @@ public sealed class FieldOpsRepository(FirestoreDb database, IConfiguration conf
             StringValue(document, "endedAtIso"),
             StringValue(document, "by"));
     }
+    private static CngDispatchDto CngDispatchFrom(DocumentSnapshot document) => new(
+        StringValue(document, "id") ?? document.Id,
+        StringValue(document, "sourceTrailerId") ?? document.Id,
+        StringValue(document, "sourceTrailerNumber") ?? document.Id,
+        EmptyToNull(StringValue(document, "replacementTrailerNumber")),
+        StringValue(document, "status") ?? "dispatched",
+        NumberValue(document, "travelTimeHours") ?? 0,
+        NumberValue(document, "targetArrivalPsi") ?? 0,
+        StringValue(document, "dispatchedAtIso") ?? "",
+        StringValue(document, "projectedArrivalIso") ?? "",
+        StringValue(document, "dispatchedBy") ?? "");
+    private static Dictionary<string, object> CngDispatchFields(CngDispatchDto dispatch) => new()
+    {
+        ["id"] = dispatch.Id,
+        ["sourceTrailerId"] = dispatch.SourceTrailerId,
+        ["sourceTrailerNumber"] = dispatch.SourceTrailerNumber,
+        ["replacementTrailerNumber"] = dispatch.ReplacementTrailerNumber ?? "",
+        ["status"] = dispatch.Status,
+        ["travelTimeHours"] = dispatch.TravelTimeHours,
+        ["targetArrivalPsi"] = dispatch.TargetArrivalPsi,
+        ["dispatchedAtIso"] = dispatch.DispatchedAtIso,
+        ["projectedArrivalIso"] = dispatch.ProjectedArrivalIso,
+        ["dispatchedBy"] = dispatch.DispatchedBy,
+    };
 
     private IReadOnlyList<AlertDto> BuildInventoryAlerts(IEnumerable<ContainerDto> containers)
     {
@@ -148,6 +253,7 @@ public sealed class FieldOpsRepository(FirestoreDb database, IConfiguration conf
 
     private static bool IsStale(string? timestamp, DateTimeOffset now, TimeSpan threshold) => timestamp is null || now - ParseTimestamp(timestamp) > threshold;
     private static DateTimeOffset ParseTimestamp(string timestamp) => DateTimeOffset.TryParse(timestamp, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var value) ? value : DateTimeOffset.MinValue;
+    private static string? EmptyToNull(string? value) => string.IsNullOrWhiteSpace(value) ? null : value;
     private static string? StringValue(DocumentSnapshot document, string field) => document.TryGetValue(field, out string? value) ? value : null;
     private static bool BoolValue(DocumentSnapshot document, string field) => document.TryGetValue(field, out bool value) && value;
     private static int IntValue(DocumentSnapshot document, string field) => document.TryGetValue(field, out long value) ? checked((int)value) : 0;
@@ -166,3 +272,7 @@ public sealed class FieldOpsRepository(FirestoreDb database, IConfiguration conf
 
     private sealed record StoredReading(string TrailerId, double PressurePsi, double? TemperatureF, string RecordedAtIso, string? By);
 }
+
+public enum CngDispatchCreateStatus { Created, SiteNotFound, TrailerNotAvailable, ActiveDispatchExists }
+public sealed record CngDispatchCreateResult(CngDispatchCreateStatus Status, CngDispatchDto? Dispatch);
+public sealed class ActiveCngDispatchExistsException : Exception { }

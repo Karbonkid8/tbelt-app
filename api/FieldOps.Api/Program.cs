@@ -2,7 +2,9 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
 using FieldOps.Api.Auth;
+using FieldOps.Api.Models;
 using FieldOps.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -84,6 +86,46 @@ v1.MapGet("/sites/{siteId}/cng/stages", async (string siteId, FieldOpsRepository
 })
     .WithName("GetCngStageTotals")
     .WithSummary("Returns all posted CNG stage totals and the location-wide MSCF aggregate.");
+
+v1.MapGet("/sites/{siteId}/cng/pressure-trends", async (string siteId, FieldOpsRepository repository, CancellationToken cancellationToken) =>
+{
+    var trends = await repository.GetCngPressureTrendsAsync(siteId, cancellationToken);
+    return trends is null ? Results.NotFound() : Results.Ok(trends);
+})
+    .WithName("GetCngPressureTrends")
+    .WithSummary("Returns recorded CNG pressures for each active trailer.");
+
+v1.MapGet("/sites/{siteId}/cng/dispatches", async (string siteId, FieldOpsRepository repository, CancellationToken cancellationToken) =>
+{
+    var dispatches = await repository.GetActiveCngDispatchesAsync(siteId, cancellationToken);
+    return dispatches is null ? Results.NotFound() : Results.Ok(dispatches);
+})
+    .WithName("GetActiveCngDispatches")
+    .WithSummary("Returns CNG replacement trailers currently in transit.");
+
+v1.MapPost("/sites/{siteId}/cng/dispatches", async (string siteId, CreateCngDispatchRequest request, ClaimsPrincipal user, FieldOpsRepository repository, CancellationToken cancellationToken) =>
+{
+    if (string.IsNullOrWhiteSpace(request.SourceTrailerId))
+        return Results.ValidationProblem(new Dictionary<string, string[]> { ["sourceTrailerId"] = ["A source trailer is required."] });
+    if (request.TravelTimeHours is < 0 or > 48)
+        return Results.ValidationProblem(new Dictionary<string, string[]> { ["travelTimeHours"] = ["Travel time must be between 0 and 48 hours."] });
+    if (request.TargetArrivalPsi is < 100 or > 2500)
+        return Results.ValidationProblem(new Dictionary<string, string[]> { ["targetArrivalPsi"] = ["Target arrival pressure must be between 100 and 2,500 PSI."] });
+
+    var actor = user.FindFirst(ClaimTypes.Email)?.Value
+        ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+        ?? "Unknown administrator";
+    var result = await repository.CreateCngDispatchAsync(siteId, request, actor, cancellationToken);
+    return result.Status switch
+    {
+        CngDispatchCreateStatus.SiteNotFound => Results.NotFound(),
+        CngDispatchCreateStatus.TrailerNotAvailable => Results.ValidationProblem(new Dictionary<string, string[]> { ["sourceTrailerId"] = ["The selected active trailer was not found at this location."] }),
+        CngDispatchCreateStatus.ActiveDispatchExists => Results.Conflict(new { message = "A replacement is already in transit for this trailer." }),
+        _ => Results.Created($"/v1/sites/{siteId}/cng/dispatches/{result.Dispatch!.Id}", result.Dispatch),
+    };
+})
+    .WithName("CreateCngDispatch")
+    .WithSummary("Records a replacement CNG trailer as dispatched.");
 
 v1.MapGet("/sites/{siteId}/trailers", async (string siteId, bool? active, FieldOpsRepository repository, CancellationToken cancellationToken) =>
 {
