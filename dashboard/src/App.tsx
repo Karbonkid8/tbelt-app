@@ -3,8 +3,9 @@ import type { User } from 'firebase/auth';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { fieldOpsApi, type CngDispatch, type CngStageTotals, type CngTrailerTrend, type CreateCngDispatch, type Dashboard, type Site } from './api';
 import { auth } from './firebase';
+import type { Theme } from './theme';
 
-type Props = { user: User };
+type Props = { user: User; theme: Theme; onToggleTheme: () => void };
 type DashboardView = 'location' | 'chemicals' | 'cng' | 'requisitions';
 type DispatchTiming = { title: string; detail: string; tone: 'normal' | 'attention' | 'urgent' | 'unknown' };
 
@@ -35,7 +36,7 @@ function dispatchTiming(currentPsi: number | undefined, rate: number | null, tra
   return { title: `Dispatch in ${rounded} hr${rounded === 1 ? '' : 's'}`, detail: `Planned arrival near ${Math.round(targetPsi).toLocaleString()} PSI.`, tone: currentPsi <= 1100 ? 'attention' : 'normal' };
 }
 
-export function Login() {
+export function Login({ theme, onToggleTheme }: Pick<Props, 'theme' | 'onToggleTheme'>) {
   const [error, setError] = useState('');
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -43,7 +44,7 @@ export function Login() {
     try { await signInWithEmailAndPassword(auth, String(form.get('email')).trim(), String(form.get('password'))); }
     catch { setError('Unable to sign in with that administrator account.'); }
   }
-  return <main className="login-shell"><form className="login-card" onSubmit={submit}><div className="mark">FO</div><p className="eyebrow">FIELDOPS</p><h1>Operations dashboard</h1><p>Use your administrator account to view live site status.</p><label>EMAIL<input required name="email" type="email" autoComplete="email" /></label><label>PASSWORD<input required name="password" type="password" autoComplete="current-password" /></label>{error && <p className="error">{error}</p>}<button type="submit">Sign in</button></form></main>;
+  return <main className="login-shell"><button className="theme-toggle login-theme-toggle" type="button" onClick={onToggleTheme} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>{theme === 'dark' ? '☀ Light' : '☾ Night'}</button><form className="login-card" onSubmit={submit}><div className="mark">FO</div><p className="eyebrow">FIELDOPS</p><h1>Operations dashboard</h1><p>Use your administrator account to view live site status.</p><label>EMAIL<input required name="email" type="email" autoComplete="email" /></label><label>PASSWORD<input required name="password" type="password" autoComplete="current-password" /></label>{error && <p className="error">{error}</p>}<button type="submit">Sign in</button></form></main>;
 }
 
 function AlertList({ dashboard }: { dashboard: Dashboard }) { return <article className="card alerts"><div className="card-heading"><h2>Needs attention</h2><span>{dashboard.alerts.length} alerts</span></div><ul>{dashboard.alerts.length ? dashboard.alerts.map(alert => <li className={`alert ${alert.severity}`} key={`${alert.type}-${alert.resourceId}`}><b>{alert.resourceName}</b><span>{alert.message}</span></li>) : <li className="all-clear">All readings are current.</li>}</ul></article>; }
@@ -95,7 +96,7 @@ function PressureTrendChart({ trends }: { trends: CngTrailerTrend[] }) {
 
 function DispatchHistory({ dispatches }: { dispatches: CngDispatch[] }) { return <article className="card dispatch-history"><div className="card-heading"><h2>Recent dispatch history</h2><span>{dispatches.length} records</span></div>{dispatches.length ? <table><thead><tr><th>Trailer</th><th>Status</th><th>Dispatched</th><th>Resolved</th></tr></thead><tbody>{dispatches.slice(0, 10).map(dispatch => <tr key={dispatch.id}><td><b>{dispatch.sourceTrailerNumber}</b>{dispatch.replacementTrailerNumber && <small>Replacement {dispatch.replacementTrailerNumber}</small>}</td><td><span className={`dispatch-status ${dispatch.status}`}>{dispatch.status}</span></td><td>{formatDateTime(dispatch.dispatchedAtIso)}</td><td>{dispatch.resolvedAtIso ? formatDateTime(dispatch.resolvedAtIso) : 'In transit'}</td></tr>)}</tbody></table> : <p className="empty">No CNG replacement dispatches recorded yet.</p>}</article>; }
 
-export function App({ user }: Props) {
+export function App({ user, theme, onToggleTheme }: Props) {
   const [sites, setSites] = useState<Site[]>([]); const [siteId, setSiteId] = useState(''); const [dashboard, setDashboard] = useState<Dashboard>(); const [cngStageTotals, setCngStageTotals] = useState<CngStageTotals>(); const [cngTrends, setCngTrends] = useState<CngTrailerTrend[]>([]); const [cngDispatches, setCngDispatches] = useState<CngDispatch[]>([]); const [cngDispatchHistory, setCngDispatchHistory] = useState<CngDispatch[]>([]); const [view, setView] = useState<DashboardView>('location'); const [error, setError] = useState(''); const [loading, setLoading] = useState(false); const [refreshKey, setRefreshKey] = useState(0);
   useEffect(() => { fieldOpsApi.listSites(user).then(foundSites => { setSites(foundSites); if (foundSites.length === 1) setSiteId(foundSites[0].id); }).catch(reason => setError(reason.message)); }, [user]);
   useEffect(() => { if (!siteId) return; setLoading(true); setError(''); Promise.all([fieldOpsApi.dashboard(user, siteId), fieldOpsApi.cngStageTotals(user, siteId), fieldOpsApi.cngPressureTrends(user, siteId), fieldOpsApi.cngDispatches(user, siteId), fieldOpsApi.cngDispatchHistory(user, siteId)]).then(([nextDashboard, totals, trends, dispatches, history]) => { setDashboard(nextDashboard); setCngStageTotals(totals); setCngTrends(trends); setCngDispatches(dispatches); setCngDispatchHistory(history); }).catch(reason => setError(reason.message)).finally(() => setLoading(false)); }, [siteId, user, refreshKey]);
@@ -103,7 +104,7 @@ export function App({ user }: Props) {
   async function resolveCngDispatch(dispatchId: string, status: 'arrived' | 'cancelled') { const dispatch = await fieldOpsApi.resolveCngDispatch(user, siteId, dispatchId, status); setCngDispatches(current => current.filter(item => item.id !== dispatch.id)); setCngDispatchHistory(current => current.map(item => item.id === dispatch.id ? dispatch : item)); }
   const lowIsos = dashboard?.inventory.alerts.filter(alert => alert.type === 'low-iso').length ?? 0;
   return <>
-    <header><div className="brand"><span>FO</span><strong>FieldOps</strong><small>Operations dashboard</small></div><div className="actions"><button className="secondary" disabled={!siteId || loading} onClick={() => setRefreshKey(key => key + 1)}>Refresh</button><button className="link" onClick={() => signOut(auth)}>Sign out</button></div></header>
+    <header><div className="brand"><span>FO</span><strong>FieldOps</strong><small>Operations dashboard</small></div><div className="actions"><button className="theme-toggle" type="button" onClick={onToggleTheme} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>{theme === 'dark' ? '☀ Light' : '☾ Night'}</button><button className="secondary" disabled={!siteId || loading} onClick={() => setRefreshKey(key => key + 1)}>Refresh</button><button className="link" onClick={() => signOut(auth)}>Sign out</button></div></header>
     <main className="page">
       <section className="heading"><div><p className="eyebrow">LIVE OPERATIONS</p><h1>Dashboard</h1><p className="muted">{dashboard ? <>Location: <strong>{dashboard.site.name}</strong> · ID: <code>{dashboard.site.id}</code> · Updated {new Date(dashboard.generatedAtIso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</> : 'Select a location to load its current status.'}</p></div><label className="site-picker">LOCATION<select value={siteId} onChange={event => setSiteId(event.target.value)}><option value="">Choose a location</option>{sites.map(site => <option value={site.id} key={site.id}>{site.name} · {site.id}</option>)}</select></label></section>
       {dashboard && <nav className="view-tabs" aria-label="Dashboard views">{([{ id: 'location', label: 'Location' }, { id: 'chemicals', label: 'Chemicals' }, { id: 'cng', label: 'CNG' }, { id: 'requisitions', label: 'Requisitions' }] as const).map(item => <button key={item.id} type="button" className={view === item.id ? 'active' : ''} aria-current={view === item.id ? 'page' : undefined} onClick={() => setView(item.id)}>{item.label}</button>)}</nav>}

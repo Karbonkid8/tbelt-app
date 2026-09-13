@@ -124,3 +124,18 @@
   .pressure-chart svg { min-width: 620px; }
   .pressure-chart { overflow-x: auto; }
 }
+
+:root[data-theme="dark"] .view-tabs { border-color:#424a52; background:#22262b; }
+:root[data-theme="dark"] .view-tabs button { color:#b8bec5; }
+:root[data-theme="dark"] .view-tabs button:hover { background:#2c3238; }
+:root[data-theme="dark"] .view-tabs button.active,:root[data-theme="dark"] .pressure-chart .card-heading button.selected { background:#edf0f2; color:#17191c; }
+:root[data-theme="dark"] .requisition-placeholder p:not(.eyebrow),:root[data-theme="dark"] .requisition-placeholder span,:root[data-theme="dark"] .well-row small,:root[data-theme="dark"] .dispatch-planner .card-heading small,:root[data-theme="dark"] .dispatch-controls label,:root[data-theme="dark"] .dispatch-controls em,:root[data-theme="dark"] .dispatch-row span,:root[data-theme="dark"] .replacement-label,:root[data-theme="dark"] .trend-legend span { color:#aeb6be; }
+:root[data-theme="dark"] .well-row,:root[data-theme="dark"] .dispatch-row,:root[data-theme="dark"] .dispatch-controls { border-color:#3b4249; }
+:root[data-theme="dark"] .dispatch-controls { background:#1b1f23; }
+:root[data-theme="dark"] .dispatch-controls input,:root[data-theme="dark"] .replacement-label input { border-color:#4b535b; background:#17191c; color:#edf0f2; }
+:root[data-theme="dark"] .dispatch-error { background:#3a2022; }
+:root[data-theme="dark"] .resolve-actions button.cancel { background:#3a424a; color:#edf0f2; }
+:root[data-theme="dark"] .pressure-chart .card-heading button { color:#c4cbd1; }
+:root[data-theme="dark"] .chart-grid { stroke:#3b4249; }
+:root[data-theme="dark"] .chart-label { fill:#aeb6be; }
+:root[data-theme="dark"] .dispatch-status.cancelled { background:#3a424a; color:#e0e4e7; }
