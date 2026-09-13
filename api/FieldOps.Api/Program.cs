@@ -59,7 +59,7 @@ app.MapGet("/", () => Results.Redirect("/swagger"))
     .AllowAnonymous()
     .ExcludeFromDescription();
 
-app.MapGet("/healthz", () => Results.Ok(new { status = "ok" }))
+app.MapGet("/v1/healthz", () => Results.Ok(new { status = "ok" }))
     .AllowAnonymous()
     .WithTags("Health");
 
