@@ -4,7 +4,7 @@ The FieldOps Integration API is an ASP.NET Core Minimal API that provides a secu
 
 ## Endpoints
 
-All `/v1` endpoints require a Firebase ID token from an active FieldOps administrator in the `Authorization: Bearer <token>` header.
+All protected `/v1` operational endpoints require a Firebase ID token from an active FieldOps administrator in the `Authorization: Bearer <token>` header. `/v1/healthz` is public for service-health checks.
 
 | Method | Path | Purpose |
 | --- | --- | --- |
