@@ -1,6 +1,6 @@
 # FieldOps Integration API
 
-The FieldOps Integration API is a read-only ASP.NET Core Minimal API that provides a secured REST interface over the existing Firestore location data.
+The FieldOps Integration API is an ASP.NET Core Minimal API that provides a secured REST interface over FieldOps location data. It is read-focused, with controlled CNG replacement-dispatch actions for approved administrators.
 
 ## Endpoints
 
@@ -14,9 +14,14 @@ All `/v1` endpoints require a Firebase ID token from an active FieldOps administ
 | `GET` | `/v1/sites/{siteId}/inventory` | All containers plus low, stale, and missing-strap alerts. |
 | `GET` | `/v1/sites/{siteId}/wells` | Active wells with their planned-stage counts and display colors. |
 | `GET` | `/v1/sites/{siteId}/cng/stages` | Posted CNG stage records with a location-wide MSCF total. |
+| `GET` | `/v1/sites/{siteId}/cng/pressure-trends` | Recorded CNG pressures for each active trailer. |
 | `GET` | `/v1/sites/{siteId}/trailers?active=true` | Trailers with their latest pressure and temperature readings. |
+| `GET` | `/v1/sites/{siteId}/cng/dispatches` | Replacement CNG trailers currently in transit. |
+| `GET` | `/v1/sites/{siteId}/cng/dispatches/history` | Completed and cancelled CNG replacement dispatches. |
+| `POST` | `/v1/sites/{siteId}/cng/dispatches` | Record a replacement CNG trailer as dispatched. |
+| `PATCH` | `/v1/sites/{siteId}/cng/dispatches/{dispatchId}` | Mark an in-transit replacement as arrived or cancelled. |
 
-Swagger documentation is available at `/swagger` once the service is running.
+Swagger documentation is available at `/swagger` once the service is running. Select **Authorize**, paste the Firebase ID token for an active FieldOps administrator (without `Bearer `), then execute protected `/v1` requests. The Swagger page adds the authorization header automatically. `/v1/healthz` remains available without a token.
 
 ## Local development
 
@@ -46,4 +51,4 @@ gcloud run deploy fieldops-api \
 
 The `fieldops-api` service account needs the read-only Firestore/Datastore Viewer role in `fieldops-260e1`. Firebase Hosting owns `api.fracplotter.com` and rewrites its requests to this service; this avoids Cloud Run's preview-only direct domain mapping in `us-west3`.
 
-The dashboard-facing API is intentionally read-only in its first release.
+The dashboard-facing API is read-focused. Its only write operations manage the CNG replacement-dispatch lifecycle; all other endpoints return operational data.

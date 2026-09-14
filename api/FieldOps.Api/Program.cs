@@ -40,6 +40,19 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "Authenticated REST API for FieldOps site status, chemical inventory, CNG operations, and replacement-dispatch workflows. All /v1 endpoints require an active Firebase administrator bearer token.",
     });
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "Paste a Firebase ID token for an active FieldOps administrator. Swagger adds the Bearer prefix automatically.",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+    });
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = [],
+    });
 });
 
 var app = builder.Build();
