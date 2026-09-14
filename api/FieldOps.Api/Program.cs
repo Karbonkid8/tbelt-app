@@ -38,7 +38,7 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "FieldOps Operations API",
         Version = "v1",
-        Description = "Authenticated REST API for FieldOps site status, chemical inventory, CNG operations, and replacement-dispatch workflows. All /v1 endpoints require an active Firebase administrator bearer token.",
+        Description = "Authenticated REST API for FieldOps site status, chemical inventory, CNG operations, and replacement-dispatch workflows. Use Authorize to provide a Firebase ID token for an active FieldOps administrator. The API verifies that token and administrator status on every protected request; Field Site Codes do not grant API access. Protected /v1 operational endpoints require an administrator bearer token. /v1/healthz is available for service-health checks.",
     });
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
