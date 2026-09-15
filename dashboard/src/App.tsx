@@ -9,6 +9,8 @@ type Props = { user: User; theme: Theme; onToggleTheme: () => void };
 type DashboardView = 'location' | 'chemicals' | 'cng' | 'requisitions';
 type DispatchTiming = { title: string; detail: string; tone: 'normal' | 'attention' | 'urgent' | 'unknown' };
 
+const DASHBOARD_REFRESH_INTERVAL_MS = 15_000;
+
 const timeAgo = (iso?: string | null) => {
   if (!iso) return 'No reading';
   const minutes = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
@@ -100,6 +102,7 @@ export function App({ user, theme, onToggleTheme }: Props) {
   const [sites, setSites] = useState<Site[]>([]); const [siteId, setSiteId] = useState(''); const [dashboard, setDashboard] = useState<Dashboard>(); const [cngStageTotals, setCngStageTotals] = useState<CngStageTotals>(); const [cngTrends, setCngTrends] = useState<CngTrailerTrend[]>([]); const [cngDispatches, setCngDispatches] = useState<CngDispatch[]>([]); const [cngDispatchHistory, setCngDispatchHistory] = useState<CngDispatch[]>([]); const [view, setView] = useState<DashboardView>('location'); const [error, setError] = useState(''); const [loading, setLoading] = useState(false); const [refreshKey, setRefreshKey] = useState(0);
   useEffect(() => { fieldOpsApi.listSites(user).then(foundSites => { setSites(foundSites); if (foundSites.length === 1) setSiteId(foundSites[0].id); }).catch(reason => setError(reason.message)); }, [user]);
   useEffect(() => { if (!siteId) return; setLoading(true); setError(''); Promise.all([fieldOpsApi.dashboard(user, siteId), fieldOpsApi.cngStageTotals(user, siteId), fieldOpsApi.cngPressureTrends(user, siteId), fieldOpsApi.cngDispatches(user, siteId), fieldOpsApi.cngDispatchHistory(user, siteId)]).then(([nextDashboard, totals, trends, dispatches, history]) => { setDashboard(nextDashboard); setCngStageTotals(totals); setCngTrends(trends); setCngDispatches(dispatches); setCngDispatchHistory(history); }).catch(reason => setError(reason.message)).finally(() => setLoading(false)); }, [siteId, user, refreshKey]);
+  useEffect(() => { if (!siteId) return; const timer = window.setInterval(() => setRefreshKey(key => key + 1), DASHBOARD_REFRESH_INTERVAL_MS); return () => window.clearInterval(timer); }, [siteId]);
   async function createCngDispatch(request: CreateCngDispatch) { const dispatch = await fieldOpsApi.createCngDispatch(user, siteId, request); setCngDispatches(current => [dispatch, ...current]); setCngDispatchHistory(current => [dispatch, ...current]); }
   async function resolveCngDispatch(dispatchId: string, status: 'arrived' | 'cancelled') { const dispatch = await fieldOpsApi.resolveCngDispatch(user, siteId, dispatchId, status); setCngDispatches(current => current.filter(item => item.id !== dispatch.id)); setCngDispatchHistory(current => current.map(item => item.id === dispatch.id ? dispatch : item)); }
   const lowIsos = dashboard?.inventory.alerts.filter(alert => alert.type === 'low-iso').length ?? 0;

@@ -9,6 +9,10 @@ All notable user-facing changes to FieldOps are recorded here.
 - CNG tab with location trailer readings, end-stage MSCF confirmation, stage history, and pressure trends.
 - Administrator well setup with colors, planned stage counts, and active status.
 
+### Changed
+
+- Dashboard refreshes selected location data every 15 seconds. Reassess the polling interval and read volume before the next release as usage grows.
+
 ## [0.2.0] - 2026-08-31
 
 ### Added
