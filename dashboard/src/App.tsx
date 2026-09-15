@@ -111,12 +111,12 @@ export function App({ user, theme, onToggleTheme }: Props) {
     <main className="page">
       <section className="heading"><div><p className="eyebrow">LIVE OPERATIONS</p><h1>Dashboard</h1><p className="muted">{dashboard ? <>Location: <strong>{dashboard.site.name}</strong> · ID: <code>{dashboard.site.id}</code> · Updated {new Date(dashboard.generatedAtIso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</> : 'Select a location to load its current status.'}</p></div><label className="site-picker">LOCATION<select value={siteId} onChange={event => setSiteId(event.target.value)}><option value="">Choose a location</option>{sites.map(site => <option value={site.id} key={site.id}>{site.name} · {site.id}</option>)}</select></label></section>
       {dashboard && <nav className="view-tabs" aria-label="Dashboard views">{([{ id: 'location', label: 'Location' }, { id: 'chemicals', label: 'Chemicals' }, { id: 'cng', label: 'CNG' }, { id: 'requisitions', label: 'Requisitions' }] as const).map(item => <button key={item.id} type="button" className={view === item.id ? 'active' : ''} aria-current={view === item.id ? 'page' : undefined} onClick={() => setView(item.id)}>{item.label}</button>)}</nav>}
-      {error ? <p className="empty">{error}</p> : loading ? <p className="empty">Loading live site data…</p> : dashboard ? <section className="view-content">
+      {error && !dashboard ? <p className="empty">{error}</p> : dashboard ? <section className="view-content">
         {view === 'location' && <LocationView dashboard={dashboard} lowIsos={lowIsos} />}
         {view === 'chemicals' && <InventoryTable dashboard={dashboard} />}
         {view === 'cng' && <><CngDispatchPlanner dashboard={dashboard} trends={cngTrends} dispatches={cngDispatches} onDispatch={createCngDispatch} onResolve={resolveCngDispatch} /><PressureTrendChart trends={cngTrends} /><DispatchHistory dispatches={cngDispatchHistory} />{cngStageTotals && <CngStageTotals totals={cngStageTotals} />}<TrailerTable dashboard={dashboard} /></>}
         {view === 'requisitions' && <RequisitionsView />}
-      </section> : <p className="empty">Choose a location to load live operational data.</p>}
+      </section> : loading ? <p className="empty">Loading live site data…</p> : <p className="empty">Choose a location to load live operational data.</p>}
     </main>
   </>;
 }
